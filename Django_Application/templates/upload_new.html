@@ -1,0 +1,939 @@
+{% extends 'base_new.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="upload-layout">
+        <!-- Left Column - Upload Panel -->
+        <div class="upload-panel fade-up" style="animation-delay: 0s;">
+            <div class="section-label">● VIDEO ANALYSIS</div>
+            <h1 class="upload-title">Analyze Your Video</h1>
+            <p class="upload-subtitle">
+                Upload any video file and our AI will detect deepfake manipulation with frame-level precision
+            </p>
+            
+            <!-- Upload Form -->
+            <form method="post" enctype="multipart/form-data" id="upload-form" action="{% url 'ml_app:upload' %}">
+                {% csrf_token %}
+                
+                <!-- Upload Drop Zone -->
+                <div class="upload-zone" id="upload-zone">
+                    <div class="upload-content">
+                        <div class="upload-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17,8 12,3 7,8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                        </div>
+                        <div class="upload-text">
+                            <div class="upload-title-text">Drop your video here</div>
+                            <div class="upload-subtext">or click to browse</div>
+                        </div>
+                        <div class="upload-formats">
+                            MP4 · AVI · MOV · MKV · Max 500MB
+                        </div>
+                    </div>
+                    <input type="file" name="upload_video_file" id="video-input" accept="video/*" style="display: none;">
+                </div>
+                
+                <!-- Selected File Display -->
+                <div class="selected-file" id="selected-file" style="display: none;">
+                    <div class="file-info">
+                        <div class="file-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17,8 12,3 7,8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                        </div>
+                        <div class="file-details">
+                            <div class="file-name" id="file-name">video.mp4</div>
+                            <div class="file-size" id="file-size">2.4 MB</div>
+                        </div>
+                        <button type="button" class="remove-file" id="remove-file">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Model Selector -->
+                <div class="model-selector">
+                    <div class="selector-label">DETECTION MODEL</div>
+                    <div class="model-grid">
+                        <div class="model-card" data-frames="10">
+                            <div class="model-frames">10</div>
+                            <div class="model-frames-label">frames</div>
+                            <div class="model-accuracy">84.2%</div>
+                            <div class="model-speed">Fast ⚡</div>
+                        </div>
+                        <div class="model-card active" data-frames="20">
+                            <div class="model-frames">20</div>
+                            <div class="model-frames-label">frames</div>
+                            <div class="model-accuracy">87.8%</div>
+                            <div class="model-speed">Balanced</div>
+                        </div>
+                        <div class="model-card" data-frames="40">
+                            <div class="model-frames">40</div>
+                            <div class="model-frames-label">frames</div>
+                            <div class="model-accuracy">89.4%</div>
+                            <div class="model-speed">Good</div>
+                        </div>
+                        <div class="model-card" data-frames="60">
+                            <div class="model-frames">60</div>
+                            <div class="model-frames-label">frames</div>
+                            <div class="model-accuracy">90.6%</div>
+                            <div class="model-speed">High</div>
+                        </div>
+                        <div class="model-card" data-frames="80">
+                            <div class="model-frames">80</div>
+                            <div class="model-frames-label">frames</div>
+                            <div class="model-accuracy">91.5%</div>
+                            <div class="model-speed">Very High</div>
+                        </div>
+                        <div class="model-card" data-frames="100">
+                            <div class="model-frames">100</div>
+                            <div class="model-frames-label">frames</div>
+                            <div class="model-accuracy">93.6%</div>
+                            <div class="model-speed">Best 🏆</div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="sequence_length" id="sequence-length" value="20">
+                </div>
+                
+                <!-- Submit Button -->
+                <button type="submit" class="submit-btn" id="submit-btn">
+                    <div class="btn-content">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17,8 12,3 7,8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <span id="btn-text">Analyze Video</span>
+                    </div>
+                    <div class="btn-loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <span id="loading-text">Analyzing... 0%</span>
+                    </div>
+                </button>
+                
+                <!-- Error Message -->
+                <div class="error-message" id="error-message" style="display: none;">
+                    <div class="error-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="15" y1="9" x2="9" y2="15"/>
+                            <line x1="9" y1="9" x2="15" y2="15"/>
+                        </svg>
+                    </div>
+                    <div class="error-text" id="error-text">Upload failed</div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Right Column - Info Panel -->
+        <div class="info-panel fade-up" style="animation-delay: 0.2s;">
+            <!-- What to Expect -->
+            <div class="info-card">
+                <h3 class="info-title">What to Expect</h3>
+                <div class="expectations">
+                    <div class="expectation-step">
+                        <div class="step-number">1</div>
+                        <div class="step-text">Upload your video file</div>
+                    </div>
+                    <div class="expectation-step">
+                        <div class="step-number">2</div>
+                        <div class="step-text">Select detection accuracy</div>
+                    </div>
+                    <div class="expectation-step">
+                        <div class="step-number">3</div>
+                        <div class="step-text">AI analyzes frame by frame</div>
+                    </div>
+                    <div class="expectation-step">
+                        <div class="step-number">4</div>
+                        <div class="step-text">Get FAKE or REAL verdict</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Model Info -->
+            <div class="info-card">
+                <h3 class="info-title">Model Information</h3>
+                <div class="model-details">
+                    <div class="model-stat">
+                        <div class="stat-label">Accuracy</div>
+                        <div class="accuracy-bar">
+                            <div class="accuracy-fill" id="accuracy-fill" style="width: 87.8%;"></div>
+                        </div>
+                        <div class="stat-value" id="accuracy-value">87.8%</div>
+                    </div>
+                    <div class="model-stat">
+                        <div class="stat-label">Frame Count</div>
+                        <div class="stat-value" id="frame-count">20 frames</div>
+                    </div>
+                    <div class="model-stat">
+                        <div class="stat-label">Best For</div>
+                        <div class="stat-value" id="best-for">Quick analysis</div>
+                    </div>
+                    <div class="model-stat">
+                        <div class="stat-label">Processing Time</div>
+                        <div class="stat-value" id="processing-time">~2-4 seconds</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Results Preview -->
+            <div class="info-card" id="results-card" style="display: none;">
+                <h3 class="info-title">Analysis Results</h3>
+                <div class="result-display">
+                    <div class="result-verdict" id="result-verdict">FAKE</div>
+                    <div class="result-confidence" id="result-confidence">94.2%</div>
+                    <div class="result-details">
+                        <div class="result-detail">
+                            <span class="detail-label">Frames Analyzed</span>
+                            <span class="detail-value" id="frames-analyzed">20</span>
+                        </div>
+                        <div class="result-detail">
+                            <span class="detail-label">Processing Time</span>
+                            <span class="detail-value" id="processing-result">3.2s</span>
+                        </div>
+                    </div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="confidence-fill"></div>
+                    </div>
+                    <a href="{% url 'ml_app:home' %}" class="analyze-another-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17,8 12,3 7,8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        Analyze Another Video
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Upload Layout */
+.upload-layout {
+    display: grid;
+    grid-template-columns: 60% 40%;
+    gap: 48px;
+    padding: 60px 0;
+    min-height: calc(100vh - 72px);
+    align-items: start;
+}
+
+/* Upload Panel */
+.upload-panel {
+    max-width: 600px;
+}
+
+.section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--indigo);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
+}
+
+.upload-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 40px;
+    color: var(--text);
+    margin-bottom: 16px;
+    line-height: 1.1;
+}
+
+.upload-subtitle {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 32px;
+}
+
+/* Upload Zone */
+.upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 16px;
+    padding: 48px 32px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    margin-bottom: 32px;
+}
+
+.upload-zone:hover {
+    border-color: var(--indigo);
+    background: rgba(91, 110, 245, 0.02);
+}
+
+.upload-zone.drag-over {
+    border-color: var(--indigo);
+    background: rgba(91, 110, 245, 0.05);
+    transform: scale(1.02);
+}
+
+.upload-icon {
+    color: var(--indigo);
+    margin-bottom: 16px;
+}
+
+.upload-title-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+.upload-subtext {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 8px;
+}
+
+.upload-formats {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--faint);
+}
+
+/* Selected File */
+.selected-file {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 32px;
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.file-icon {
+    color: var(--indigo);
+    flex-shrink: 0;
+}
+
+.file-details {
+    flex: 1;
+}
+
+.file-name {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 2px;
+}
+
+.file-size {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.remove-file {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.remove-file:hover {
+    background: var(--red);
+    color: white;
+}
+
+/* Model Selector */
+.model-selector {
+    margin-bottom: 32px;
+}
+
+.selector-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
+}
+
+.model-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.model-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.model-card:hover {
+    border-color: var(--indigo);
+    transform: translateY(-2px);
+}
+
+.model-card.active {
+    background: rgba(91, 110, 245, 0.1);
+    border-color: var(--indigo);
+}
+
+.model-frames {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+.model-frames-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 8px;
+}
+
+.model-accuracy {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--green);
+    margin-bottom: 4px;
+}
+
+.model-speed {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: var(--muted);
+}
+
+/* Submit Button */
+.submit-btn {
+    width: 100%;
+    height: 52px;
+    background: linear-gradient(135deg, var(--indigo), var(--indigo2));
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.submit-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(91, 110, 245, 0.3);
+}
+
+.submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.btn-content, .btn-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error Message */
+.error-message {
+    background: rgba(244, 63, 94, 0.1);
+    border: 1px solid var(--red);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.error-icon {
+    color: var(--red);
+    flex-shrink: 0;
+}
+
+.error-text {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--red);
+}
+
+/* Info Panel */
+.info-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.info-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.info-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--text);
+    margin-bottom: 20px;
+}
+
+/* Expectations */
+.expectations {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.expectation-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.step-number {
+    width: 24px;
+    height: 24px;
+    background: var(--indigo);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    color: white;
+    flex-shrink: 0;
+}
+
+.step-text {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+}
+
+/* Model Details */
+.model-details {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.model-stat {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.stat-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+    width: 100px;
+    flex-shrink: 0;
+}
+
+.accuracy-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--surface);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.accuracy-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--indigo), var(--cyan));
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.stat-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    width: 80px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+/* Results Display */
+.result-display {
+    text-align: center;
+}
+
+.result-verdict {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 48px;
+    margin-bottom: 8px;
+}
+
+.result-verdict.fake {
+    color: var(--red);
+}
+
+.result-verdict.real {
+    color: var(--green);
+}
+
+.result-confidence {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 24px;
+    color: var(--text);
+    margin-bottom: 24px;
+}
+
+.result-details {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 24px;
+}
+
+.result-detail {
+    text-align: center;
+}
+
+.detail-label {
+    display: block;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 4px;
+}
+
+.detail-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--text);
+}
+
+.confidence-bar {
+    height: 8px;
+    background: var(--surface);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+.confidence-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--red), var(--amber));
+    border-radius: 4px;
+}
+
+.confidence-fill.real {
+    background: linear-gradient(90deg, var(--green), var(--cyan));
+}
+
+.analyze-another-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: var(--indigo);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.analyze-another-btn:hover {
+    background: var(--indigo2);
+    transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .upload-layout {
+        grid-template-columns: 1fr;
+        gap: 48px;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .info-panel {
+        max-width: 400px;
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .model-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .upload-title {
+        font-size: 32px;
+    }
+    
+    .result-verdict {
+        font-size: 36px;
+    }
+    
+    .result-details {
+        flex-direction: column;
+        gap: 12px;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadZone = document.getElementById('upload-zone');
+    const videoInput = document.getElementById('video-input');
+    const selectedFile = document.getElementById('selected-file');
+    const fileName = document.getElementById('file-name');
+    const fileSize = document.getElementById('file-size');
+    const removeFile = document.getElementById('remove-file');
+    const submitBtn = document.getElementById('submit-btn');
+    const uploadForm = document.getElementById('upload-form');
+    const errorMessage = document.getElementById('error-message');
+    const errorText = document.getElementById('error-text');
+    const btnContent = document.querySelector('.btn-content');
+    const btnLoading = document.querySelector('.btn-loading');
+    const loadingText = document.getElementById('loading-text');
+    
+    // Model selection
+    const modelCards = document.querySelectorAll('.model-card');
+    const sequenceLength = document.getElementById('sequence-length');
+    const accuracyFill = document.getElementById('accuracy-fill');
+    const accuracyValue = document.getElementById('accuracy-value');
+    const frameCount = document.getElementById('frame-count');
+    const bestFor = document.getElementById('best-for');
+    const processingTime = document.getElementById('processing-time');
+    
+    // Model data
+    const modelData = {
+        10: { accuracy: 84.2, speed: 'Fast ⚡', bestFor: 'Quick analysis', time: '~1-2 seconds' },
+        20: { accuracy: 87.8, speed: 'Balanced', bestFor: 'Quick analysis', time: '~2-4 seconds' },
+        40: { accuracy: 89.4, speed: 'Good', bestFor: 'Standard analysis', time: '~4-6 seconds' },
+        60: { accuracy: 90.6, speed: 'High', bestFor: 'Detailed analysis', time: '~6-8 seconds' },
+        80: { accuracy: 91.5, speed: 'Very High', bestFor: 'High accuracy', time: '~8-12 seconds' },
+        100: { accuracy: 93.6, speed: 'Best 🏆', bestFor: 'Maximum accuracy', time: '~12-20 seconds' }
+    };
+    
+    // Upload zone click
+    uploadZone.addEventListener('click', function() {
+        videoInput.click();
+    });
+    
+    // File input change
+    videoInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            showSelectedFile(file);
+        }
+    });
+    
+    // Drag and drop
+    uploadZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadZone.classList.add('drag-over');
+    });
+    
+    uploadZone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        uploadZone.classList.remove('drag-over');
+    });
+    
+    uploadZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadZone.classList.remove('drag-over');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            const file = files[0];
+            if (file.type.startsWith('video/')) {
+                videoInput.files = files;
+                showSelectedFile(file);
+            } else {
+                showError('Please upload a video file');
+            }
+        }
+    });
+    
+    // Remove file
+    removeFile.addEventListener('click', function() {
+        videoInput.value = '';
+        selectedFile.style.display = 'none';
+        uploadZone.style.display = 'block';
+        hideError();
+    });
+    
+    // Model selection
+    modelCards.forEach(card => {
+        card.addEventListener('click', function() {
+            modelCards.forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            
+            const frames = parseInt(this.dataset.frames);
+            sequenceLength.value = frames;
+            
+            const data = modelData[frames];
+            accuracyFill.style.width = data.accuracy + '%';
+            accuracyValue.textContent = data.accuracy + '%';
+            frameCount.textContent = frames + ' frames';
+            bestFor.textContent = data.bestFor;
+            processingTime.textContent = data.time;
+        });
+    });
+    
+    // Form submission
+    uploadForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!videoInput.files[0]) {
+            showError('Please select a video file');
+            return;
+        }
+        
+        hideError();
+        setLoading(true);
+        
+        const formData = new FormData(uploadForm);
+        
+        // Simulate progress
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress > 90) progress = 90;
+            loadingText.textContent = `Analyzing... ${Math.round(progress)}%`;
+        }, 500);
+        
+        fetch(uploadForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            clearInterval(progressInterval);
+            loadingText.textContent = 'Analyzing... 100%';
+            
+            if (data.success) {
+                setTimeout(() => {
+                    setLoading(false);
+                    showResults(data);
+                }, 500);
+            } else {
+                setLoading(false);
+                showError(data.error || 'Upload failed');
+            }
+        })
+        .catch(error => {
+            clearInterval(progressInterval);
+            setLoading(false);
+            showError('Upload failed: ' + error.message);
+        });
+    });
+    
+    function showSelectedFile(file) {
+        fileName.textContent = file.name;
+        fileSize.textContent = formatFileSize(file.size);
+        selectedFile.style.display = 'block';
+        uploadZone.style.display = 'none';
+        hideError();
+    }
+    
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+    
+    function setLoading(loading) {
+        submitBtn.disabled = loading;
+        if (loading) {
+            btnContent.style.display = 'none';
+            btnLoading.style.display = 'flex';
+        } else {
+            btnContent.style.display = 'flex';
+            btnLoading.style.display = 'none';
+            loadingText.textContent = 'Analyzing... 0%';
+        }
+    }
+    
+    function showError(message) {
+        errorText.textContent = message;
+        errorMessage.style.display = 'flex';
+    }
+    
+    function hideError() {
+        errorMessage.style.display = 'none';
+    }
+    
+    function showResults(data) {
+        const resultsCard = document.getElementById('results-card');
+        const resultVerdict = document.getElementById('result-verdict');
+        const resultConfidence = document.getElementById('result-confidence');
+        const confidenceFill = document.getElementById('confidence-fill');
+        const framesAnalyzed = document.getElementById('frames-analyzed');
+        
+        resultsCard.style.display = 'block';
+        resultVerdict.textContent = data.verdict || 'FAKE';
+        resultVerdict.className = 'result-verdict ' + (data.verdict === 'FAKE' ? 'fake' : 'real');
+        resultConfidence.textContent = (data.confidence || 0) + '%';
+        confidenceFill.style.width = (data.confidence || 0) + '%';
+        confidenceFill.className = 'confidence-fill ' + (data.verdict === 'FAKE' ? 'fake' : 'real');
+        framesAnalyzed.textContent = sequenceLength.value;
+        
+        // Scroll to results
+        resultsCard.scrollIntoView({ behavior: 'smooth' });
+    }
+});
+</script>
+{% endblock %}

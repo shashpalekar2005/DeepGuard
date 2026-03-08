@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <span class="hero-badge">
+      <svg width="12" height="12" viewBox="0 0 24 24" 
+        fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      ResNeXt50 + LSTM Model
+    </span>
+    <h1 class="hero-title">
+      Detect Deepfakes<br>
+      <span class="hero-accent">Before They Spread</span>
+    </h1>
+    <p class="hero-sub">
+      Frame-level AI analysis identifies manipulated videos 
+      with up to 93.5% accuracy using ResNeXt50 feature 
+      extraction and LSTM sequence modeling.
+    </p>
+    <div class="hero-actions">
+      <a href="{% url 'ml_app:home' %}" class="btn-hero-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" 
+          fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        Upload Video
+      </a>
+      <a href="{% url 'ml_app:screen_analyze' %}" class="btn-hero-secondary">
+        <svg width="16" height="16" viewBox="0 0 24 24" 
+          fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <line x1="8" y1="21" x2="16" y2="21"/>
+          <line x1="12" y1="17" x2="12" y2="21"/>
+        </svg>
+        Analyze Screen
+      </a>
+    </div>
+    <div class="trust-row">
+      <span>✓ 93.5% Peak Accuracy</span>
+      <span>✓ 6,000+ Training Videos</span>
+      <span>✓ No Data Stored</span>
+      <span>✓ Open Source</span>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats-section">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number">93.5%</div>
+      <div class="stat-label">Peak Accuracy</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">6,000+</div>
+      <div class="stat-label">Training Videos</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">100</div>
+      <div class="stat-label">Frames Analyzed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">&lt;2.3s</div>
+      <div class="stat-label">Detection Speed</div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features-section">
+  <h2 class="section-title">Two Ways to Detect</h2>
+  <div class="features-grid">
+    <a href="{% url 'ml_app:home' %}" class="feature-card">
+      <div class="feature-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" 
+          fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+      </div>
+      <h3>Upload & Analyze</h3>
+      <p>Upload any MP4 or AVI video file. Our AI extracts 
+      frames and runs LSTM sequence analysis to detect 
+      manipulation artifacts.</p>
+      <span class="feature-link">Upload Video →</span>
+    </a>
+    <a href="{% url 'ml_app:screen_analyze' %}" class="feature-card feature-card-blue">
+      <div class="feature-icon feature-icon-blue">
+        <svg width="24" height="24" viewBox="0 0 24 24" 
+          fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <line x1="8" y1="21" x2="16" y2="21"/>
+          <line x1="12" y1="17" x2="12" y2="21"/>
+        </svg>
+      </div>
+      <h3>Screen Analysis</h3>
+      <p>Capture your screen in real-time. Detect deepfakes 
+      in video calls, streams, or any content playing 
+      in your browser instantly.</p>
+      <span class="feature-link feature-link-blue">
+        Start Capture →
+      </span>
+    </a>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section">
+  <h2 class="section-title">How DeepGuard Works</h2>
+  <div class="steps-grid">
+    <div class="step">
+      <div class="step-num">01</div>
+      <h3>Upload or Capture</h3>
+      <p>Provide a video file or capture your screen 
+         session directly in the browser.</p>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <h3>AI Frame Analysis</h3>
+      <p>ResNeXt50 extracts spatial features from each 
+         frame. LSTM reasons over the sequence.</p>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <h3>Instant Verdict</h3>
+      <p>Get a REAL or FAKE verdict with confidence score 
+         and frame-by-frame breakdown.</p>
+    </div>
+  </div>
+</section>
+
+<!-- MODEL TABLE -->
+<section class="models-section">
+  <h2 class="section-title">Available Models</h2>
+  <div class="table-wrap">
+    <table class="models-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Frames</th>
+          <th>Accuracy</th>
+          <th>Best For</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="mono">model_84_acc_10_frames</td>
+          <td>10</td>
+          <td><span class="acc-badge">84.2%</span></td>
+          <td>Fast analysis</td>
+        </tr>
+        <tr>
+          <td class="mono">model_87_acc_20_frames</td>
+          <td>20</td>
+          <td><span class="acc-badge">87.8%</span></td>
+          <td>Balanced speed</td>
+        </tr>
+        <tr>
+          <td class="mono">model_89_acc_40_frames</td>
+          <td>40</td>
+          <td><span class="acc-badge">89.3%</span></td>
+          <td>Good accuracy</td>
+        </tr>
+        <tr>
+          <td class="mono">model_90_acc_60_frames</td>
+          <td>60</td>
+          <td><span class="acc-badge">90.6%</span></td>
+          <td>High accuracy</td>
+        </tr>
+        <tr>
+          <td class="mono">model_97_acc_80_frames</td>
+          <td>80</td>
+          <td><span class="acc-badge">91.5%</span></td>
+          <td>Very high accuracy</td>
+        </tr>
+        <tr class="best-row">
+          <td class="mono">model_93_acc_100_frames</td>
+          <td>100</td>
+          <td>
+            <span class="acc-badge acc-best">93.6%</span>
+            <span class="best-tag">Best</span>
+          </td>
+          <td>Maximum accuracy</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{% endblock %}

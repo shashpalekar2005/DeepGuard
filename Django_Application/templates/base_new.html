@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <title>DeepGuard – Deepfake Detector</title>
+    
+    <style>
+        :root {
+            --bg: #03050D;
+            --bg2: #070B18;
+            --surface: #0C1120;
+            --card: #111828;
+            --border: #1E2D45;
+            --indigo: #5B6EF5;
+            --indigo2: #7C8EF8;
+            --cyan: #22D3EE;
+            --green: #10B981;
+            --red: #F43F5E;
+            --amber: #FBBF24;
+            --text: #F0F4FF;
+            --muted: #8896B3;
+            --faint: #3D4F6B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* Background Effects */
+        .bg-noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .bg-blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.10;
+            z-index: 2;
+            pointer-events: none;
+            animation: drift 20s ease-in-out infinite alternate;
+        }
+
+        .blob-1 {
+            width: 700px;
+            height: 700px;
+            background: var(--indigo);
+            top: -200px;
+            left: -200px;
+        }
+
+        .blob-2 {
+            width: 500px;
+            height: 500px;
+            background: var(--cyan);
+            top: 50%;
+            right: -100px;
+            animation-delay: -5s;
+        }
+
+        .blob-3 {
+            width: 400px;
+            height: 400px;
+            background: var(--red);
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation-delay: -10s;
+        }
+
+        @keyframes drift {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(30px, -20px) scale(1.05); }
+            50% { transform: translate(-20px, 30px) scale(0.95); }
+            75% { transform: translate(40px, 10px) scale(1.02); }
+        }
+
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(30, 45, 69, 0.12) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(30, 45, 69, 0.12) 1px, transparent 1px);
+            background-size: 80px 80px;
+            z-index: 3;
+            pointer-events: none;
+            mask: radial-gradient(circle at center, black 40%, transparent 70%);
+            -webkit-mask: radial-gradient(circle at center, black 40%, transparent 70%);
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            backdrop-filter: blur(20px);
+            background: rgba(3, 5, 13, 0.8);
+            border-bottom: 1px solid rgba(91, 110, 245, 0.15);
+        }
+
+        .navbar-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 20px;
+            color: var(--text);
+        }
+
+        .navbar-brand svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .navbar-center {
+            display: flex;
+            gap: 32px;
+        }
+
+        .nav-link {
+            color: var(--muted);
+            text-decoration: none;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 400;
+            font-size: 15px;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--text);
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-primary {
+            background: var(--indigo);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: var(--indigo2);
+            transform: translateY(-1px);
+        }
+
+        /* Content */
+        .content {
+            position: relative;
+            z-index: 10;
+            padding-top: 72px;
+        }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-up {
+            animation: fadeUp 0.6s ease-out forwards;
+        }
+
+        /* Utility classes */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .badge-live {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border: 1px solid var(--indigo);
+            border-radius: 20px;
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text);
+            background: rgba(91, 110, 245, 0.1);
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Effects -->
+    <svg class="bg-noise" xmlns="http://www.w3.org/2000/svg">
+        <filter id="noise">
+            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#noise)" />
+    </svg>
+    
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+    <div class="bg-blob blob-3"></div>
+    <div class="bg-grid"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <div class="navbar-left">
+                <a href="{% url 'ml_app:home' %}" class="navbar-brand">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <path d="M9 12l2 2 4-4"/>
+                    </svg>
+                    DeepGuard
+                </a>
+            </div>
+            
+            <div class="navbar-center">
+                <a href="{% url 'ml_app:home' %}" class="nav-link{% if request.resolver_match.url_name == 'home' %} active{% endif %}">Home</a>
+                <a href="{% url 'ml_app:home' %}" class="nav-link{% if request.resolver_match.url_name == 'home' %} active{% endif %}">Upload</a>
+                <a href="{% url 'ml_app:screen_analyze' %}" class="nav-link{% if request.resolver_match.url_name == 'screen_analyze' %} active{% endif %}">Analyze Screen</a>
+                <a href="{% url 'ml_app:live' %}" class="nav-link{% if request.resolver_match.url_name == 'live' %} active{% endif %}">Live Camera</a>
+                <a href="{% url 'ml_app:history' %}" class="nav-link{% if request.resolver_match.url_name == 'history' %} active{% endif %}">History</a>
+            </div>
+            
+            <div class="navbar-right">
+                <a href="{% url 'ml_app:home' %}" class="btn-primary">Try Now</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="content">
+        {% block content %}
+        {% endblock %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DeepGuard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7 1L2 4V7C2 9.5 4.5 11.5 7 12.5C9.5 11.5 12 9.5 12 7V4L7 1Z" stroke="#6366f1" stroke-width="1" fill="none"/>
+        <circle cx="7" cy="6.5" r="2" stroke="#6366f1" stroke-width="1" fill="none"/>
+      </svg>
+      <span class="brand-name">DeepGuard</span>
+      <span class="brand-sep">/</span>
+      <span class="brand-version">v1.0</span>
+    </div>
+    <div class="status-pill">
+      <span class="status-dot"></span>
+      <span class="status-text">online</span>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="tabs">
+    <button class="tab active" data-tab="capture">Capture</button>
+    <button class="tab" data-tab="upload">Upload</button>
+    <button class="tab" data-tab="scanner">Scanner</button>
+  </nav>
+
+  <!-- Capture Panel -->
+  <section id="capture" class="panel active">
+    <!-- Preview Box -->
+    <div class="preview-box">
+      <video class="preview-video" autoplay muted playsinline></video>
+      
+      <!-- Idle State -->
+      <div class="preview-idle">
+        <svg class="preview-idle-icon" width="28" height="28" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7 1L2 4V7C2 9.5 4.5 11.5 7 12.5C9.5 11.5 12 9.5 12 7V4L7 1Z" stroke="#1e293b" stroke-width="1" fill="none"/>
+          <circle cx="7" cy="6.5" r="2" stroke="#1e293b" stroke-width="1" fill="none"/>
+        </svg>
+        <div class="preview-idle-text">No active capture</div>
+        <div class="preview-idle-sub">Select duration and press record</div>
+      </div>
+      
+      <!-- Recording State -->
+      <div class="rec-badge">
+        <span class="rec-dot"></span>
+        <span class="rec-text">REC</span>
+      </div>
+      <div class="rec-timer">00:00</div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <div class="control-row">
+        <span class="control-label">Duration</span>
+        <div class="duration-pills">
+          <button class="pill active" data-seconds="3">3s</button>
+          <button class="pill" data-seconds="5">5s</button>
+          <button class="pill" data-seconds="10">10s</button>
+        </div>
+      </div>
+      
+      <button class="btn-primary" id="record-btn">
+        <span class="btn-text">Start Recording</span>
+        <div class="btn-spinner"></div>
+      </button>
+    </div>
+
+    <!-- Result Panel -->
+    <div class="result-panel" id="capture-result">
+      <div class="result-top">
+        <div class="result-left">
+          <div class="result-verdict" id="capture-verdict">FAKE</div>
+          <div class="result-subtext" id="capture-subtext">deepfake detected</div>
+        </div>
+        <div class="result-confidence">
+          <div class="confidence-number" id="capture-confidence">94.2%</div>
+          <div class="confidence-label">confidence</div>
+        </div>
+      </div>
+      
+      <div class="confidence-bar-track">
+        <div class="confidence-bar-fill" id="capture-bar-fill"></div>
+      </div>
+      
+      <div class="result-actions">
+        <button class="btn-text primary" id="capture-report">view full report ↗</button>
+        <button class="btn-text secondary" id="capture-again">analyze again</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Upload Panel -->
+  <section id="upload" class="panel">
+    <!-- Drop Zone -->
+    <div class="drop-zone" id="drop-zone">
+      <svg class="drop-zone-icon" width="20" height="20" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7 1V9M7 9L4 6M7 9L10 6M1 12H13" stroke="#334155" stroke-width="1" stroke-linecap="round"/>
+      </svg>
+      <div class="drop-zone-text">Drop video file</div>
+      <div class="drop-zone-sub">or click to browse</div>
+      <div class="drop-zone-file" id="file-info"></div>
+    </div>
+    <input type="file" id="file-input" accept="video/*" hidden>
+
+    <!-- Model Select -->
+    <div class="select-wrap">
+      <label class="select-label">Model</label>
+      <div class="select-arrow">
+        <select class="model-select" id="model-select">
+          <option value="10">10 frames — 84.2% acc</option>
+          <option value="20" selected>20 frames — 87.8% acc</option>
+          <option value="40">40 frames — 89.3% acc</option>
+          <option value="60">60 frames — 90.6% acc</option>
+          <option value="80">80 frames — 91.5% acc</option>
+          <option value="100">100 frames — 93.6% acc</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Analyze Button -->
+    <div class="upload-btn-wrap">
+      <button class="btn-primary" id="analyze-btn">
+        <span class="btn-text">Analyze Video</span>
+        <div class="btn-spinner"></div>
+      </button>
+      <div class="progress-bar-wrap" id="upload-progress">
+        <div class="progress-bar-fill"></div>
+      </div>
+    </div>
+
+    <!-- Upload Result -->
+    <div class="result-panel" id="upload-result">
+      <div class="result-top">
+        <div class="result-left">
+          <div class="result-verdict" id="upload-verdict">FAKE</div>
+          <div class="result-subtext" id="upload-subtext">deepfake detected</div>
+        </div>
+        <div class="result-confidence">
+          <div class="confidence-number" id="upload-confidence">94.2%</div>
+          <div class="confidence-label">confidence</div>
+        </div>
+      </div>
+      
+      <div class="confidence-bar-track">
+        <div class="confidence-bar-fill" id="upload-bar-fill"></div>
+      </div>
+      
+      <div class="result-actions">
+        <button class="btn-text primary" id="upload-report">view full report ↗</button>
+        <button class="btn-text secondary" id="upload-again">analyze again</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Scanner Panel -->
+  <section id="scanner" class="panel">
+    <div class="scanner-header">
+      <div class="scanner-title">Videos on page</div>
+      <button class="btn-scan" id="scan-btn">Scan</button>
+    </div>
+    
+    <div class="video-list" id="video-list">
+      <div class="empty-state">
+        <svg class="empty-icon" width="24" height="24" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7 1L2 4V7C2 9.5 4.5 11.5 7 12.5C9.5 11.5 12 9.5 12 7V4L7 1Z" stroke="#1e293b" stroke-width="1" fill="none"/>
+          <circle cx="7" cy="6.5" r="2" stroke="#1e293b" stroke-width="1" fill="none"/>
+        </svg>
+        <div class="empty-text">No videos detected</div>
+        <div class="empty-sub">Click scan to search</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <button class="btn-open-app" id="open-app">Open app ↗</button>
+    <div class="footer-shortcut">Alt+D</div>
+  </footer>
+
+  <script src="../utils/api.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<section class="dashboard-section section-shell">
+  <div class="dashboard-layout">
+    <header class="dashboard-header">
+      <h1 class="page-title dashboard-title">Analysis history</h1>
+      <p class="page-subtitle dashboard-subtitle">Overview of your deepfake detection runs.</p>
+    </header>
+
+    <div class="dashboard-stats">
+      <div class="card app-card-subtle dashboard-stat-card">
+        <div class="card-body">
+          <span class="dashboard-stat-value" id="stat-total">{{ stats.total_analyzed }}</span>
+          <span class="dashboard-stat-label">Videos analyzed</span>
+        </div>
+      </div>
+      <div class="card app-card-subtle dashboard-stat-card dashboard-stat-card--fake">
+        <div class="card-body">
+          <span class="dashboard-stat-value text-fake" id="stat-fake">{{ stats.fake_count }}</span>
+          <span class="dashboard-stat-label">Fake detected</span>
+        </div>
+      </div>
+      <div class="card app-card-subtle dashboard-stat-card dashboard-stat-card--real">
+        <div class="card-body">
+          <span class="dashboard-stat-value text-real" id="stat-real">{{ stats.real_count }}</span>
+          <span class="dashboard-stat-label">Real</span>
+        </div>
+      </div>
+      <div class="card app-card-subtle dashboard-stat-card">
+        <div class="card-body">
+          <span class="dashboard-stat-value" id="stat-avg">{{ stats.avg_confidence }}<span class="dashboard-stat-unit">%</span></span>
+          <span class="dashboard-stat-label">Avg confidence</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card app-card dashboard-table-card">
+      <div class="card-body p-0">
+        <div class="dashboard-table-wrap">
+          {% if analyses %}
+            <table class="dashboard-table" id="dashboard-table">
+              <thead>
+                <tr>
+                  <th class="dashboard-th dashboard-th--sortable" data-sort="name">Video name</th>
+                  <th class="dashboard-th dashboard-th--sortable" data-sort="verdict">Verdict</th>
+                  <th class="dashboard-th dashboard-th--sortable" data-sort="confidence">Confidence</th>
+                  <th class="dashboard-th dashboard-th--sortable" data-sort="frames">Frames</th>
+                  <th class="dashboard-th dashboard-th--sortable" data-sort="date">Date</th>
+                  <th class="dashboard-th dashboard-th--action">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in analyses %}
+                  <tr class="dashboard-row">
+                    <td class="dashboard-td dashboard-td--name">
+                      <span class="dashboard-td-name">{{ item.video_name }}</span>
+                    </td>
+                    <td class="dashboard-td">
+                      <span class="verdict-badge verdict-badge--{% if item.verdict == 'REAL' %}real{% else %}fake{% endif %}">
+                        {{ item.verdict }}
+                      </span>
+                    </td>
+                    <td class="dashboard-td dashboard-td--confidence">{{ item.confidence }}%</td>
+                    <td class="dashboard-td dashboard-td--frames">{{ item.frames }}</td>
+                    <td class="dashboard-td dashboard-td--date">{{ item.date }}</td>
+                    <td class="dashboard-td dashboard-td--action">
+                      <a href="{{ item.detail_url }}" class="btn btn-sm btn-outline-primary dashboard-action-btn">View</a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <div class="dashboard-empty">
+              <div class="dashboard-empty-icon" aria-hidden="true">
+                <i class="fas fa-film" aria-hidden="true"></i>
+              </div>
+              <h2 class="section-heading dashboard-empty-title">No analyses yet</h2>
+              <p class="dashboard-empty-text">Upload a video to run deepfake detection. Your analysis history will appear here.</p>
+              <a href="{% url 'ml_app:home' %}" class="btn btn-primary btn-pill dashboard-empty-cta">
+                <i class="fas fa-upload mr-2" aria-hidden="true"></i>
+                Upload video
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block js_cripts %}
+<script>
+  (function () {
+    var table = document.getElementById('dashboard-table');
+    if (!table) return;
+    var tbody = table.querySelector('tbody');
+    var rows = tbody && tbody.querySelectorAll('tr');
+    if (!rows || rows.length === 0) return;
+
+    var getCell = function (row, key) {
+      var i = { name: 0, verdict: 1, confidence: 2, frames: 3, date: 4 }[key];
+      return row.cells[i] ? row.cells[i].textContent.trim() : '';
+    };
+    var parseNum = function (s) {
+      var n = parseFloat(String(s).replace(/[^0-9.]/g, ''));
+      return isNaN(n) ? 0 : n;
+    };
+
+    table.querySelectorAll('.dashboard-th--sortable').forEach(function (th) {
+      th.addEventListener('click', function () {
+        var key = th.getAttribute('data-sort');
+        var order = th.getAttribute('data-order') !== 'asc' ? 'asc' : 'desc';
+        th.setAttribute('data-order', order);
+        var arr = Array.prototype.slice.call(rows);
+        arr.sort(function (a, b) {
+          var va = getCell(a, key);
+          var vb = getCell(b, key);
+          if (key === 'confidence' || key === 'frames') {
+            var na = parseNum(va);
+            var nb = parseNum(vb);
+            return order === 'asc' ? na - nb : nb - na;
+          }
+          if (key === 'date') {
+            return order === 'asc' ? (va < vb ? -1 : 1) : (vb < va ? -1 : 1);
+          }
+          return order === 'asc' ? (va < vb ? -1 : 1) : (vb < va ? -1 : 1);
+        });
+        arr.forEach(function (r) { tbody.appendChild(r); });
+      });
+    });
+  })();
+</script>
+{% endblock %}
+

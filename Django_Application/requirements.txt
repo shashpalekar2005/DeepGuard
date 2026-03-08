@@ -1,0 +1,13 @@
+django>=4.2
+numpy
+opencv-python
+Pillow
+requests
+tqdm
+
+# Deep learning stack (optional in DEMO_MODE; required for real inference/training)
+torch
+torchvision
+facenet-pytorch
+django-cors-headers
+

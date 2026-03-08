@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+
+    <title>DeepGuard – Deepfake Detector</title>
+</head>
+<body class="app-body page-fade-in">
+    <div class="app-shell">
+        <!-- NAVBAR -->
+        <nav class="navbar">
+            <div class="navbar-inner">
+                <div class="navbar-left">
+                    <a href="{% url 'ml_app:home' %}" class="navbar-brand">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                        <span class="navbar-text">DeepGuard</span>
+                    </a>
+                </div>
+                
+                <div class="navbar-center">
+                    <a href="{% url 'ml_app:home' %}" class="nav-link{% if request.resolver_match.url_name == 'home' %} active{% endif %}">
+                        Home
+                    </a>
+                    <a href="{% url 'ml_app:home' %}" class="nav-link{% if request.resolver_match.url_name == 'home' %} active{% endif %}">
+                        Upload
+                    </a>
+                    <a href="{% url 'ml_app:screen_analyze' %}" class="nav-link{% if request.resolver_match.url_name == 'screen_analyze' %} active{% endif %}">
+                        Analyze Screen
+                    </a>
+                    <a href="{% url 'ml_app:live' %}" class="nav-link{% if request.resolver_match.url_name == 'live' %} active{% endif %}">
+                        Live Camera
+                    </a>
+                    <a href="{% url 'ml_app:history' %}" class="nav-link{% if request.resolver_match.url_name == 'history' %} active{% endif %}">
+                        History
+                    </a>
+                </div>
+                
+                <div class="navbar-right">
+                    <a href="https://github.com/abhijitjadhav1998/Deepfake_detection_using_deep_learning"
+                       target="_blank"
+                       class="navbar-link">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957.266 1.783 1.008 2.532 1.008 1.464 0 2.657-1.193 2.657-2.657 0-1.47-1.193-2.657-2.657-2.657-1.47 0-2.657 1.187-2.657 2.657 0 .414.095.806.263 1.155 2.224 1.162 2.907 2.175 2.907 3.464 0 .662-.218 1.227-.574 1.691-1.124-.039-.313-.236-1.244-.236-1.244-.004-.05-.034-.098-.087-.111-.053-.013-.111.006-.164.041-.044.026-.117.262-.117.262-.229.398-.463.574-.68.975-1.091 1.72-2.278 1.72-3.918 0-2.823-2.289-5.112-5.112-5.112z"/>
+                        </svg>
+                    </a>
+                    <a href="{% url 'ml_app:home' %}" class="btn-try-now">
+                        Try Now
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <main class="app-main">
+            {% block content %}
+            {% endblock %}
+        </main>
+
+        {% include 'footer.html' %}
+    </div>
+
+    {% block js_scripts %}
+    {% endblock %}
+</body>
+</html>

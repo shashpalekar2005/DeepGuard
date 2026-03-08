@@ -1,0 +1,59 @@
+<nav class="navbar navbar-expand-lg navbar-dark mb-2">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{% url 'ml_app:home' %}">
+      <span class="navbar-brand-logo">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 2.25 5.25 4.5v6.22c0 4.28 3.04 8.3 6.75 9.28 3.71-.98 6.75-5 6.75-9.28V4.5L12 2.25zM12 4.1l4.5 1.5v5.12c0 3.18-2.19 6.39-4.5 7.26-2.31-.87-4.5-4.08-4.5-7.26V5.6L12 4.1z"/>
+        </svg>
+      </span>
+      <span>
+        <span class="navbar-brand-text-main">DeepGuard</span>
+        <span class="navbar-brand-text-sub">Deepfake Detector</span>
+      </span>
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto main-nav">
+        <li class="nav-item">
+          <a class="nav-link{% if request.resolver_match.url_name == 'home' %} active{% endif %}"
+             href="{% url 'ml_app:home' %}">
+            <i class="fas fa-upload mr-1"></i> Upload Video
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link{% if request.resolver_match.url_name == 'screen_analyze' %} active{% endif %}"
+             href="{% url 'ml_app:screen_analyze' %}">
+            <i class="fas fa-display mr-1"></i> Analyze Screen
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link{% if request.resolver_match.url_name == 'live' %} active{% endif %}"
+             href="{% url 'ml_app:live' %}">
+            <i class="fas fa-video mr-1"></i> Live Camera
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link{% if request.resolver_match.url_name == 'history' %} active{% endif %}"
+             href="{% url 'ml_app:history' %}">
+            <i class="fas fa-clock-rotate-left mr-1"></i> History
+          </a>
+        </li>
+      </ul>
+      <div class="navbar-cta-group">
+        <a href="https://github.com/abhijitjadhav1998/Deepfake_detection_using_deep_learning"
+           target="_blank"
+           class="navbar-ghost-link">
+          <i class="fab fa-github me-1"></i> GitHub
+        </a>
+        <a href="{% url 'ml_app:home' %}#upload" class="btn btn-sm btn-try-now">
+          Try Now
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>

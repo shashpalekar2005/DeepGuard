@@ -1,0 +1,293 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+{% if no_faces %}
+  <section class="section-shell mt-3">
+    <div class="verdict-banner verdict-banner--fake">
+      <div class="d-flex align-items-center gap-3">
+        <div class="verdict-banner-icon">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div>
+          <div class="verdict-banner-title">No faces detected</div>
+          <div class="verdict-banner-sub">We couldn’t detect any faces in this video. Try a clip with a clearly visible face.</div>
+        </div>
+      </div>
+      <div class="verdict-banner-conf text-end">
+        <div class="verdict-banner-conf-value">0.0%</div>
+        <div class="verdict-banner-conf-label">Confidence</div>
+      </div>
+    </div>
+
+    <div class="results-two-column">
+      <div class="results-card">
+        <div class="results-card-header">
+          <strong>Uploaded video</strong>
+        </div>
+        <div class="results-card-body">
+          <video class="results-video" id="predict-media" controls aria-label="Uploaded video">
+            <source src="{{ MEDIA_URL }}{{ original_video }}" type="video/mp4" />
+          </video>
+        </div>
+      </div>
+      <div class="results-card">
+        <div class="results-card-header d-flex justify-content-between align-items-center">
+          <strong>Next steps</strong>
+        </div>
+        <div class="results-card-body">
+          <p class="text-muted mb-3">
+            DeepGuard needs at least one detectable face in the sampled frames to run the temporal deepfake analysis.
+          </p>
+          <ul class="analysis-summary-list">
+            <li>Use a video where the subject faces the camera.</li>
+            <li>Avoid heavy motion blur or extreme darkness.</li>
+            <li>Trim the video to the segment where the face is visible.</li>
+          </ul>
+          <a href="{% url 'ml_app:home' %}" class="btn btn-primary mt-3">
+            Upload another video
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+{% else %}
+  <section class="section-shell mt-3">
+    <section class="verdict-section section-shell mt-3">
+      <div class="verdict-banner verdict-banner--fake">
+      <div class="d-flex align-items-center gap-3">
+        <div class="verdict-banner-icon">
+            <i class="fas fa-triangle-exclamation"></i>
+          {% endif %}
+        </div>
+        <div>
+          {% if output == "REAL" %}
+            <div class="verdict-banner-title">AUTHENTIC VIDEO</div>
+            <div class="verdict-banner-sub">No deepfake patterns detected in the analyzed frames.</div>
+          {% else %}
+            <div class="verdict-banner-title">DEEPFAKE DETECTED</div>
+            <div class="verdict-banner-sub">Temporal and spatial cues indicate manipulated content.</div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="verdict-banner-conf">
+        <div class="verdict-banner-conf-value" id="conf-countup">{{ confidence }}%</div>
+        <div class="verdict-banner-conf-label">Confidence</div>
+      </div>
+    </div>
+
+    <div class="results-two-column mb-3">
+      <div class="results-card">
+        <div class="results-card-header">
+          <strong>Video playback</strong>
+        </div>
+        <div class="results-card-body">
+          <video class="results-video" id="predict-media" controls aria-label="Uploaded video">
+            <source src="{{ MEDIA_URL }}{{ original_video }}" type="video/mp4" />
+          </video>
+        </div>
+      </div>
+
+      <div class="results-card">
+        <div class="results-card-header d-flex justify-content-between align-items-center">
+          <strong>Analysis summary</strong>
+          <span class="badge-verdict badge-verdict--{% if output == 'REAL' %}real{% else %}fake{% endif %}">
+            {{ output }}
+          </span>
+        </div>
+        <div class="results-card-body">
+          <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-3">
+            <div class="confidence-gauge confidence-gauge--{% if output == 'REAL' %}real{% else %}fake{% endif %}"
+                 data-confidence="{{ confidence }}"
+                 data-verdict="{{ output }}">
+              <svg viewBox="0 0 120 120" class="confidence-gauge-svg">
+                <circle class="confidence-gauge-bg" cx="60" cy="60" r="52" />
+                <circle class="confidence-gauge-ring" cx="60" cy="60" r="52"
+                        stroke-dasharray="326.72"
+                        stroke-dashoffset="326.72" />
+                <text x="60" y="60" text-anchor="middle" class="confidence-gauge-value">{{ confidence }}%</text>
+                <text x="60" y="78" text-anchor="middle" class="confidence-gauge-label">Model confidence</text>
+              </svg>
+            </div>
+            <ul class="analysis-summary-list mb-0">
+              <li><strong>Video:</strong> {{ video_name|default:original_video }}</li>
+              <li><strong>Frames analyzed:</strong> {{ frames_analyzed|default:preprocessed_images|length }}</li>
+              <li><strong>Model:</strong> {{ model_used|default:"ResNeXt + LSTM" }}</li>
+              <li><strong>Processing time:</strong> {% if processing_time %}{{ processing_time|floatformat:2 }}s{% else %}—{% endif %}</li>
+              <li><strong>Run date:</strong> {{ analysis_date|default:"—" }}</li>
+            </ul>
+          </div>
+
+          <button id="btn-download-report" type="button" class="btn btn-outline-primary btn-sm results-report-btn">
+            <i class="fas fa-file-download me-1"></i> Download report (PDF)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="results-two-column mb-3">
+      <div class="results-card">
+        <div class="results-card-header">
+          <strong>Frame analysis timeline</strong>
+        </div>
+        <div class="results-card-body">
+          <div class="frame-strip" id="frame-strip">
+            {% for each_image in preprocessed_images %}
+              {% with i=forloop.counter0 %}
+                <div class="frame-thumb frame-thumb--{% if output == 'REAL' %}real{% else %}fake{% endif %}"
+                     data-frame-index="{{ i|add:1 }}"
+                     data-confidence="{{ confidence }}">
+                  <img src="{% static each_image %}" alt="Frame {{ i|add:1 }}">
+                  <span class="frame-thumb-label">#{{ i|add:1 }}</span>
+                </div>
+              {% endwith %}
+            {% empty %}
+              <p class="text-muted small mb-0">No sampled frames were saved for this analysis.</p>
+            {% endfor %}
+          </div>
+          <div class="frame-conf-readout" id="frame-conf-readout">
+            Click a frame to inspect its confidence score.
+          </div>
+        </div>
+      </div>
+
+      <div class="results-card">
+        <div class="results-card-header">
+          <strong>Detected faces</strong>
+        </div>
+        <div class="results-card-body">
+          {% if faces_cropped_images %}
+            <div class="frame-strip">
+              {% for each_image in faces_cropped_images %}
+                <div class="frame-thumb">
+                  <img src="{% static each_image %}" alt="Face {{ forloop.counter }}">
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted small mb-0">No cropped faces were stored for this run.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="results-chart-card">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <strong>Frame distribution</strong>
+        <span class="text-muted small">REAL vs FAKE across sampled frames</span>
+      </div>
+      <canvas id="frameDistChart" height="120"></canvas>
+    </div>
+
+    <div class="mt-3 d-flex justify-content-between align-items-center">
+      <a href="{% url 'ml_app:home' %}" class="btn btn-secondary btn-sm">
+        ← Analyze another video
+      </a>
+    </div>
+  </section>
+{% endif %}
+
+{% endblock %}
+
+{% block js_cripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  (function () {
+    var verdict = '{{ output }}';
+    var confidence = parseFloat('{{ confidence }}' || '0');
+    var fakeCount = parseInt('{{ frame_fake_count }}' || '0', 10);
+    var realCount = parseInt('{{ frame_real_count }}' || '0', 10);
+
+    // Confidence count-up animation
+    var confEl = document.getElementById('conf-countup');
+    if (confEl && !isNaN(confidence)) {
+      var start = 0;
+      var duration = 900;
+      var startTs = null;
+      function tick(ts) {
+        if (!startTs) startTs = ts;
+        var progress = Math.min((ts - startTs) / duration, 1);
+        var val = start + (confidence - start) * progress;
+        confEl.textContent = val.toFixed(1) + '%';
+        if (progress < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    // Circular gauge animation
+    document.querySelectorAll('.confidence-gauge').forEach(function (g) {
+      var ring = g.querySelector('.confidence-gauge-ring');
+      if (!ring) return;
+      var total = 326.72;
+      var val = Math.max(0, Math.min(100, parseFloat(g.getAttribute('data-confidence') || '0')));
+      var offset = total - (total * val / 100.0);
+      requestAnimationFrame(function () {
+        ring.style.strokeDashoffset = offset.toString();
+      });
+    });
+
+    // Download report -> print to PDF
+    var btnReport = document.getElementById('btn-download-report');
+    if (btnReport) {
+      btnReport.addEventListener('click', function () {
+        window.print();
+      });
+    }
+
+    // Frame thumbnail interaction
+    var strip = document.getElementById('frame-strip');
+    var readout = document.getElementById('frame-conf-readout');
+    if (strip && readout) {
+      strip.addEventListener('click', function (ev) {
+        var thumb = ev.target.closest('.frame-thumb');
+        if (!thumb) return;
+        strip.querySelectorAll('.frame-thumb').forEach(function (t) {
+          t.classList.remove('active');
+        });
+        thumb.classList.add('active');
+        var idx = thumb.getAttribute('data-frame-index') || '?';
+        var conf = parseFloat(thumb.getAttribute('data-confidence') || confidence || 0);
+        readout.textContent = 'Frame #' + idx + ': ' + verdict + ' at ' + conf.toFixed(1) + '% confidence.';
+      });
+    }
+
+    // Chart.js fake vs real distribution
+    var ctx = document.getElementById('frameDistChart');
+    if (ctx && typeof Chart !== 'undefined') {
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['REAL', 'FAKE'],
+          datasets: [{
+            label: 'Frames',
+            data: [realCount, fakeCount],
+            backgroundColor: [
+              'rgba(63, 185, 80, 0.8)',
+              'rgba(248, 81, 73, 0.85)'
+            ],
+            borderRadius: 8,
+            maxBarThickness: 40
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#e6edf3' },
+              grid: { display: false }
+            },
+            y: {
+              ticks: { color: '#7d8590', precision: 0 },
+              grid: { color: 'rgba(48, 54, 61, 0.6)' }
+            }
+          }
+        }
+      });
+    }
+  })();
+</script>
+{% endblock %}

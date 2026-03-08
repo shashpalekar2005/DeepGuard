@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DeepGuard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div id="app">
+    <header class="dg-header">
+      <div class="dg-header-main">
+        <div class="dg-header-logo">
+          <div class="dg-logo-shield">
+            <span class="dg-logo-eye"></span>
+          </div>
+          <div class="dg-logo-text">
+            <span class="dg-logo-title">DeepGuard</span>
+            <span class="dg-logo-subtitle">Deepfake Detector</span>
+          </div>
+        </div>
+        <div class="dg-header-status" id="backend-status">
+          <span class="dg-status-dot dg-status-dot--offline"></span>
+          <span class="dg-status-label">Checking backend…</span>
+        </div>
+      </div>
+      <button id="btn-settings" class="dg-icon-button" title="Settings">
+        <span class="dg-icon-gear"></span>
+      </button>
+    </header>
+
+    <nav class="dg-tabs">
+      <button class="dg-tab-button dg-tab-button--active" data-tab="screen-tab">Screen Capture</button>
+      <button class="dg-tab-button" data-tab="upload-tab">Upload Video</button>
+      <button class="dg-tab-button" data-tab="page-tab">Page Videos</button>
+    </nav>
+
+    <main class="dg-tabs-body">
+      <!-- Screen Capture tab -->
+      <section id="screen-tab" class="dg-tab-content dg-tab-content--active">
+        <div class="dg-card">
+          <div class="dg-card-header">
+            <span>Screen capture</span>
+            <span id="live-indicator" class="dg-live-indicator dg-live-indicator--idle">
+              <span class="dg-live-dot"></span>
+              <span class="dg-live-label">Idle</span>
+            </span>
+          </div>
+          <div class="dg-card-body">
+            <div class="dg-preview-shell">
+              <video id="screen-preview" class="dg-preview-video" autoplay muted playsinline></video>
+              <div id="screen-placeholder" class="dg-preview-placeholder">
+                <div class="dg-preview-icon">🛡️</div>
+                <div class="dg-preview-text">Click Start to begin capture</div>
+              </div>
+            </div>
+
+            <div class="dg-screen-controls">
+              <div class="dg-duration-selector" id="duration-selector">
+                <button data-seconds="3" class="dg-pill dg-pill--active">3s</button>
+                <button data-seconds="5" class="dg-pill">5s</button>
+                <button data-seconds="10" class="dg-pill">10s</button>
+              </div>
+              <div class="dg-timer" id="recording-timer">00:00</div>
+            </div>
+
+            <button id="btn-screen-toggle" class="dg-button dg-button--primary dg-button--full">
+              Start Capture
+            </button>
+          </div>
+        </div>
+
+        <div class="dg-card dg-card--result" id="screen-result-card" hidden>
+          <div class="dg-card-header">
+            <span>Screen analysis result</span>
+          </div>
+          <div class="dg-card-body">
+            <div id="screen-verdict-banner" class="dg-verdict-banner dg-verdict-banner--idle">
+              <div class="dg-verdict-text">
+                <span id="screen-verdict-label" class="dg-verdict-title">Waiting for analysis…</span>
+                <span id="screen-verdict-sub" class="dg-verdict-sub">Results will appear here after capture.</span>
+              </div>
+              <div class="dg-verdict-conf">
+                <span id="screen-conf-value" class="dg-verdict-conf-value">0%</span>
+                <span class="dg-verdict-conf-label">Confidence</span>
+              </div>
+            </div>
+
+            <div class="dg-conf-bar">
+              <div id="screen-conf-bar-inner" class="dg-conf-bar-inner"></div>
+            </div>
+
+            <div class="dg-result-actions">
+              <button id="btn-screen-view-report" class="dg-button dg-button--ghost">View Full Report</button>
+              <button id="btn-screen-again" class="dg-button dg-button--secondary">Analyze Again</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Upload Video tab -->
+      <section id="upload-tab" class="dg-tab-content">
+        <div class="dg-card">
+          <div class="dg-card-header">
+            <span>Upload video</span>
+          </div>
+          <div class="dg-card-body">
+            <div id="upload-dropzone" class="dg-dropzone">
+              <input type="file" id="upload-input" accept="video/*" hidden>
+              <div class="dg-dropzone-inner">
+                <div class="dg-dropzone-icon">⬆️</div>
+                <div class="dg-dropzone-title">Drag &amp; drop video</div>
+                <div class="dg-dropzone-sub">or click to browse from disk</div>
+                <div id="upload-file-label" class="dg-dropzone-file"></div>
+              </div>
+            </div>
+
+            <div class="dg-field">
+              <label for="model-select">Model</label>
+              <select id="model-select" class="dg-select">
+                <option value="10">DeepGuard-10 · 10 frames · 84% acc</option>
+                <option value="20" selected>DeepGuard-20 · 20 frames · 87% acc</option>
+                <option value="40">DeepGuard-40 · 40 frames · 89% acc</option>
+                <option value="60">DeepGuard-60 · 60 frames · 90% acc</option>
+                <option value="80">DeepGuard-80 · 80 frames · 91% acc</option>
+                <option value="100">DeepGuard-100 · 100 frames · 93% acc</option>
+              </select>
+            </div>
+
+            <button id="btn-upload-analyze" class="dg-button dg-button--gradient dg-button--full">
+              Analyze
+            </button>
+
+            <div class="dg-progress-shell" id="upload-progress-shell" hidden>
+              <div class="dg-progress-header">
+                <span id="upload-progress-label">Uploading…</span>
+                <span id="upload-progress-percent">0%</span>
+              </div>
+              <div class="dg-progress-bar">
+                <div id="upload-progress-inner" class="dg-progress-inner"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dg-card dg-card--result" id="upload-result-card" hidden>
+          <div class="dg-card-header">
+            <span>Video analysis result</span>
+          </div>
+          <div class="dg-card-body">
+            <div id="upload-verdict-banner" class="dg-verdict-banner dg-verdict-banner--idle">
+              <div class="dg-verdict-text">
+                <span id="upload-verdict-label" class="dg-verdict-title">Waiting for analysis…</span>
+                <span id="upload-verdict-sub" class="dg-verdict-sub">Upload a video to get started.</span>
+              </div>
+              <div class="dg-verdict-conf">
+                <span id="upload-conf-value" class="dg-verdict-conf-value">0%</span>
+                <span class="dg-verdict-conf-label">Confidence</span>
+              </div>
+            </div>
+
+            <div class="dg-conf-bar">
+              <div id="upload-conf-bar-inner" class="dg-conf-bar-inner"></div>
+            </div>
+
+            <div class="dg-result-actions">
+              <button id="btn-upload-view-report" class="dg-button dg-button--ghost">View Full Report</button>
+              <button id="btn-upload-again" class="dg-button dg-button--secondary">Analyze Again</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Page Videos tab -->
+      <section id="page-tab" class="dg-tab-content">
+        <div class="dg-card">
+          <div class="dg-card-header">
+            <span>Videos on this page</span>
+            <button id="btn-scan-page" class="dg-button dg-button--ghost dg-button--sm">Scan Page</button>
+          </div>
+          <div class="dg-card-body dg-page-videos" id="page-videos-list">
+            <div class="dg-empty-state" id="page-videos-empty">
+              <div class="dg-empty-icon">🎥</div>
+              <div class="dg-empty-title">No videos detected on this page</div>
+              <div class="dg-empty-sub">Click “Scan Page” to try again.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="dg-footer">
+      <button id="btn-open-app" class="dg-footer-link">Open Full App</button>
+      <span class="dg-footer-spacer"></span>
+      <span class="dg-footer-version">v1.0.0</span>
+    </footer>
+
+    <div id="settings-panel" class="dg-settings-panel" hidden>
+      <div class="dg-settings-inner">
+        <div class="dg-settings-header">
+          <span>Settings</span>
+          <button id="btn-settings-close" class="dg-icon-button" title="Close">
+            ✕
+          </button>
+        </div>
+        <div class="dg-field">
+          <label for="backend-url-input">Backend URL</label>
+          <input id="backend-url-input" class="dg-input" type="text" placeholder="http://127.0.0.1:8000">
+          <small class="dg-field-hint">Your DeepGuard Django backend (default: http://127.0.0.1:8000).</small>
+        </div>
+        <button id="btn-save-backend" class="dg-button dg-button--primary dg-button--full">
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../utils/api.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
+

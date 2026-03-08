@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<section class="section-shell">
+  <div class="card app-card">
+    <div class="card-body p-4 p-md-5">
+      <h1 class="page-title mb-2">About</h1>
+      <p class="page-subtitle mb-4">
+        This application analyzes uploaded videos to detect deepfakes using a CNN+LSTM pipeline.
+      </p>
+
+      <div class="app-card-subtle p-4">
+        <h2 class="section-heading mb-2">Model</h2>
+        <p class="text-muted mb-0">
+          Feature extractor: <strong>ResNeXt50_32x4d</strong> → temporal head: <strong>LSTM</strong> → 2-class classifier
+          (<strong>REAL</strong> / <strong>FAKE</strong>).
+        </p>
+      </div>
+
+      <div class="app-card-subtle p-4 mt-3">
+        <h2 class="section-heading mb-2">Demo mode</h2>
+        <p class="text-muted mb-0">
+          If model weights are missing or GPU inference isn’t available, the app can run in <strong>DEMO MODE</strong>
+          (random prediction with a realistic confidence range) to validate the UI end-to-end.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

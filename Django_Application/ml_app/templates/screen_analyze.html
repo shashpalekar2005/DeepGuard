@@ -1,0 +1,331 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="section-shell screen-section">
+  <div class="screen-header mb-4 text-center text-md-left">
+    <h1 class="page-title mb-1">Analyze Screen Activity</h1>
+    <p class="page-subtitle">
+      Capture a short recording of your screen and let <strong>DeepGuard</strong> analyze it for deepfakes in real time.
+    </p>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-7 mb-4">
+      <div class="card app-card screen-card">
+        <div class="card-body">
+          <h2 class="section-heading mb-3">Screen capture</h2>
+          <p class="text-muted small mb-3">
+            Your screen stream is processed locally on this backend instance; recordings are kept only for the duration of the analysis.
+          </p>
+
+          <div class="screen-video-shell">
+            <video id="screen-preview" class="screen-preview" autoplay muted playsinline></video>
+            <div id="screen-placeholder" class="screen-placeholder">
+              <span class="screen-placeholder-icon"><i class="fas fa-desktop"></i></span>
+              <span class="screen-placeholder-text">No screen selected</span>
+            </div>
+          </div>
+
+          <div class="screen-controls mt-3">
+            <button id="btn-pick-screen" type="button" class="btn btn-outline-primary btn-sm">
+              <i class="fas fa-desktop mr-1"></i> Select screen or window
+            </button>
+            <button id="btn-record" type="button" class="btn btn-primary btn-sm ml-2" disabled>
+              <i class="fas fa-circle mr-1"></i> Record 5s and analyze
+            </button>
+            <span id="record-countdown" class="screen-countdown text-muted small ml-3 d-none"></span>
+          </div>
+
+          <div class="screen-progress mt-3" id="screen-progress" aria-hidden="true">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="text-muted small">Analysis progress</span>
+              <span id="screen-progress-label" class="text-muted small">Idle</span>
+            </div>
+            <div class="progress progress-neon">
+              <div id="screen-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated"
+                   role="progressbar" style="width: 0%;" aria-valuenow="0"
+                   aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div class="text-muted extra-small mt-1">
+              Estimated time remaining: <span id="screen-eta">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-5 mb-4">
+      <div class="card app-card results-card-screen">
+        <div class="card-body">
+          <h2 class="section-heading mb-3">Analysis result</h2>
+
+          <div class="screen-verdict-wrap">
+            <div class="confidence-gauge" id="confidence-gauge"
+                 data-confidence="0" data-verdict="idle">
+              <svg viewBox="0 0 120 120" class="confidence-gauge-svg">
+                <circle class="confidence-gauge-bg" cx="60" cy="60" r="52" />
+                <circle class="confidence-gauge-ring" cx="60" cy="60" r="52"
+                        stroke-dasharray="326.72"
+                        stroke-dashoffset="326.72" />
+                <text x="60" y="60" text-anchor="middle" class="confidence-gauge-value" id="gauge-value">0%</text>
+                <text x="60" y="78" text-anchor="middle" class="confidence-gauge-label" id="gauge-label">Idle</text>
+              </svg>
+            </div>
+
+            <div class="screen-verdict-text">
+              <div id="screen-verdict-pill" class="verdict-pill verdict-pill--idle">Waiting for analysis…</div>
+              <p class="text-muted small mb-1">
+                Processing time: <span id="screen-processing-time">—</span>
+              </p>
+              <button id="btn-download-report" type="button" class="btn btn-outline-primary btn-xs mt-1" disabled>
+                <i class="fas fa-file-download mr-1"></i> Download report (PDF)
+              </button>
+            </div>
+          </div>
+
+          <div class="screen-timeline mt-4">
+            <h3 class="section-heading-small mb-2">Frame-by-frame timeline</h3>
+            <div id="screen-timeline-track" class="timeline-track">
+              <div class="timeline-empty text-muted small">No analysis yet.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block js_cripts %}
+<script>
+  (function () {
+    var preview = document.getElementById('screen-preview');
+    var placeholder = document.getElementById('screen-placeholder');
+    var btnPick = document.getElementById('btn-pick-screen');
+    var btnRecord = document.getElementById('btn-record');
+    var countdownEl = document.getElementById('record-countdown');
+    var progressShell = document.getElementById('screen-progress');
+    var progressBar = document.getElementById('screen-progress-bar');
+    var progressLabel = document.getElementById('screen-progress-label');
+    var etaEl = document.getElementById('screen-eta');
+
+    var gauge = document.getElementById('confidence-gauge');
+    var gaugeRing = gauge.querySelector('.confidence-gauge-ring');
+    var gaugeValue = document.getElementById('gauge-value');
+    var gaugeLabel = document.getElementById('gauge-label');
+    var verdictPill = document.getElementById('screen-verdict-pill');
+    var processingEl = document.getElementById('screen-processing-time');
+    var btnDownload = document.getElementById('btn-download-report');
+    var timelineTrack = document.getElementById('screen-timeline-track');
+
+    var mediaStream = null;
+    var recorder = null;
+    var chunks = [];
+    var RECORD_SECONDS = 5;
+    var ETA_SECONDS = 12;
+
+    function getCookie(name) {
+      var cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+          var cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+    var csrftoken = getCookie('csrftoken');
+
+    function resetProgress() {
+      progressShell.setAttribute('aria-hidden', 'false');
+      progressBar.style.width = '0%';
+      progressBar.setAttribute('aria-valuenow', '0');
+      progressLabel.textContent = 'Idle';
+      etaEl.textContent = '—';
+    }
+
+    function setProgress(pct, label, etaSeconds) {
+      progressBar.style.width = pct + '%';
+      progressBar.setAttribute('aria-valuenow', pct);
+      progressLabel.textContent = label;
+      if (typeof etaSeconds === 'number') {
+        etaEl.textContent = etaSeconds.toFixed(1) + 's';
+      }
+    }
+
+    function updateGauge(verdict, confidence) {
+      var total = 326.72;
+      var value = Math.max(0, Math.min(100, confidence || 0));
+      var offset = total - (total * value / 100.0);
+      gaugeRing.style.strokeDashoffset = offset.toString();
+      gaugeValue.textContent = value.toFixed(1) + '%';
+
+      verdictPill.classList.remove('verdict-pill--real', 'verdict-pill--fake', 'verdict-pill--idle');
+      if (verdict === 'REAL') {
+        gaugeLabel.textContent = 'REAL';
+        verdictPill.textContent = 'REAL';
+        verdictPill.classList.add('verdict-pill--real');
+      } else if (verdict === 'FAKE') {
+        gaugeLabel.textContent = 'FAKE';
+        verdictPill.textContent = 'FAKE';
+        verdictPill.classList.add('verdict-pill--fake');
+      } else {
+        gaugeLabel.textContent = 'Idle';
+        verdictPill.textContent = 'Waiting for analysis…';
+        verdictPill.classList.add('verdict-pill--idle');
+      }
+    }
+
+    function renderTimeline(frameResults) {
+      timelineTrack.innerHTML = '';
+      if (!frameResults || !frameResults.length) {
+        var empty = document.createElement('div');
+        empty.className = 'timeline-empty text-muted small';
+        empty.textContent = 'No face sequence could be extracted from this recording.';
+        timelineTrack.appendChild(empty);
+        return;
+      }
+
+      var maxFrames = Math.min(frameResults.length, 60);
+      frameResults = frameResults.slice(0, maxFrames);
+
+      frameResults.forEach(function (f) {
+        var seg = document.createElement('div');
+        seg.className = 'timeline-segment ' +
+          (f.prediction === 'REAL' ? 'timeline-segment--real' : 'timeline-segment--fake');
+        seg.title = 'Frame ' + f.frame_index + ' – ' + f.prediction +
+          ' (' + f.confidence.toFixed(1) + '%)';
+        timelineTrack.appendChild(seg);
+      });
+    }
+
+    function stopStream() {
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(function (t) { t.stop(); });
+        mediaStream = null;
+      }
+    }
+
+    btnPick.addEventListener('click', function () {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+        alert('Screen capture is not supported in this browser.');
+        return;
+      }
+
+      navigator.mediaDevices.getDisplayMedia({
+        video: { frameRate: 25 },
+        audio: false
+      }).then(function (stream) {
+        stopStream();
+        mediaStream = stream;
+        preview.srcObject = stream;
+        placeholder.classList.add('d-none');
+        btnRecord.disabled = false;
+
+        stream.getVideoTracks()[0].addEventListener('ended', function () {
+          btnRecord.disabled = true;
+          preview.srcObject = null;
+          placeholder.classList.remove('d-none');
+        });
+      }).catch(function (err) {
+        console.error('getDisplayMedia error', err);
+      });
+    });
+
+    btnRecord.addEventListener('click', function () {
+      if (!mediaStream) {
+        return;
+      }
+      chunks = [];
+      resetProgress();
+      setProgress(5, 'Recording screen…', RECORD_SECONDS);
+      btnRecord.disabled = true;
+
+      var secondsRemaining = RECORD_SECONDS;
+      countdownEl.classList.remove('d-none');
+      countdownEl.textContent = 'Recording ' + secondsRemaining + 's…';
+      var intervalId = window.setInterval(function () {
+        secondsRemaining -= 1;
+        if (secondsRemaining <= 0) {
+          window.clearInterval(intervalId);
+          countdownEl.classList.add('d-none');
+        } else {
+          countdownEl.textContent = 'Recording ' + secondsRemaining + 's…';
+        }
+      }, 1000);
+
+      try {
+        recorder = new MediaRecorder(mediaStream, { mimeType: 'video/webm;codecs=vp9' });
+      } catch (e) {
+        recorder = new MediaRecorder(mediaStream);
+      }
+
+      recorder.ondataavailable = function (e) {
+        if (e.data && e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      };
+
+      recorder.onstop = function () {
+        var blob = new Blob(chunks, { type: 'video/webm' });
+        chunks = [];
+        setProgress(35, 'Uploading for analysis…', ETA_SECONDS);
+
+        var formData = new FormData();
+        formData.append('screen_video', blob, 'screen_capture.webm');
+        formData.append('sequence_length', '20');
+
+        fetch("{% url 'ml_app:analyze_screen' %}", {
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrftoken },
+          body: formData
+        }).then(function (res) {
+          setProgress(70, 'Running deepfake model…', ETA_SECONDS / 2);
+          return res.json();
+        }).then(function (data) {
+          setProgress(100, 'Complete', 0);
+          btnRecord.disabled = false;
+          if (data.error) {
+            alert('Analysis failed: ' + data.error);
+            updateGauge(null, 0);
+            processingEl.textContent = '—';
+            renderTimeline([]);
+            btnDownload.disabled = true;
+            return;
+          }
+          var verdict = data.verdict || 'UNKNOWN';
+          var confidence = typeof data.confidence === 'number' ? data.confidence : 0;
+          updateGauge(verdict, confidence);
+          processingEl.textContent = (typeof data.processing_time === 'number'
+            ? data.processing_time.toFixed(2) + 's'
+            : '—');
+          renderTimeline(data.frame_results || []);
+          btnDownload.disabled = false;
+
+          btnDownload.onclick = function () {
+            window.print();
+          };
+        }).catch(function (err) {
+          console.error('analyze_screen error', err);
+          btnRecord.disabled = false;
+          setProgress(0, 'Error', 0);
+          btnDownload.disabled = true;
+        });
+      };
+
+      recorder.start();
+      window.setTimeout(function () {
+        if (recorder && recorder.state === 'recording') {
+          recorder.stop();
+        }
+      }, RECORD_SECONDS * 1000);
+    });
+  })();
+</script>
+{% endblock %}
+

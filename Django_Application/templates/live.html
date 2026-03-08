@@ -1,0 +1,638 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="live-container">
+  
+  <div class="live-header">
+    <h1>Live Camera Analysis</h1>
+    <p>Analyze your webcam feed in real-time for deepfake detection</p>
+  </div>
+
+  <div class="live-layout">
+    
+    <!-- Camera Feed -->
+    <div class="camera-box">
+      <video id="camera-feed" autoplay muted playsinline></video>
+      <canvas id="capture-canvas" style="display:none"></canvas>
+      
+      <!-- Overlay when inactive -->
+      <div class="camera-idle" id="camera-idle">
+        <svg width="48" height="48" viewBox="0 0 24 24" 
+          fill="none" stroke="#334155" stroke-width="1.5">
+          <path d="M23 7l-7 5 7 5V7z"/>
+          <rect x="1" y="5" width="15" height="14" rx="2"/>
+        </svg>
+        <p>Camera not started</p>
+        <span>Click "Start Camera" to begin</span>
+      </div>
+
+      <!-- Live badge -->
+      <div class="live-badge" id="live-badge" style="display:none">
+        <span class="live-dot"></span> LIVE
+      </div>
+
+      <!-- Result overlay on camera -->
+      <div class="camera-result-overlay" id="camera-overlay" 
+           style="display:none">
+        <span id="overlay-text">—</span>
+      </div>
+    </div>
+
+    <!-- Controls Panel -->
+    <div class="live-controls">
+      
+      <div class="control-section">
+        <label class="control-label">Camera</label>
+        <select id="camera-select" class="dark-select">
+          <option value="">Loading cameras...</option>
+        </select>
+      </div>
+
+      <div class="control-section">
+        <label class="control-label">Analysis Interval</label>
+        <div class="interval-pills">
+          <button class="interval-pill active" data-val="2000">
+            2s
+          </button>
+          <button class="interval-pill" data-val="5000">5s</button>
+          <button class="interval-pill" data-val="10000">10s</button>
+        </div>
+      </div>
+
+      <div class="control-section">
+        <label class="control-label">Model</label>
+        <select id="model-select" class="dark-select">
+          <option value="10">10 frames — 84.2% acc</option>
+          <option value="20" selected>20 frames — 87.8% acc</option>
+          <option value="40">40 frames — 89.3% acc</option>
+          <option value="60">60 frames — 90.6% acc</option>
+          <option value="80">80 frames — 91.5% acc</option>
+          <option value="100">100 frames — 93.6% acc</option>
+        </select>
+      </div>
+
+      <button class="btn-start-camera" id="start-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" 
+          fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 7l-7 5 7 5V7z"/>
+          <rect x="1" y="5" width="15" height="14" rx="2"/>
+        </svg>
+        Start Camera
+      </button>
+
+      <button class="btn-stop-camera" id="stop-btn" 
+              style="display:none">
+        Stop Camera
+      </button>
+
+      <!-- Stats -->
+      <div class="live-stats">
+        <div class="stat-row">
+          <span class="stat-key">Status</span>
+          <span class="stat-val" id="stat-status">Idle</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-key">Frames analyzed</span>
+          <span class="stat-val" id="stat-frames">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-key">Last verdict</span>
+          <span class="stat-val" id="stat-verdict">—</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-key">Confidence</span>
+          <span class="stat-val" id="stat-confidence">—</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-key">Fake frames</span>
+          <span class="stat-val" id="stat-fake">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-key">Real frames</span>
+          <span class="stat-val" id="stat-real">0</span>
+        </div>
+      </div>
+
+      <!-- Alert threshold -->
+      <div class="control-section" style="margin-top:16px">
+        <label class="control-label">
+          Alert if FAKE confidence exceeds
+        </label>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="range" id="threshold" 
+            min="50" max="99" value="75" 
+            style="flex:1;accent-color:#6366f1">
+          <span id="threshold-val" 
+            style="font-size:13px;color:#94a3b8;
+            font-family:monospace;min-width:35px">75%</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Analysis History -->
+  <div class="live-history">
+    <h3>Analysis History</h3>
+    <div class="history-list" id="history-list">
+      <div class="history-empty">
+        No analysis yet. Start camera to begin.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+.live-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+.live-header {
+  margin-bottom: 32px;
+}
+
+.live-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.live-header p {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.live-layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+/* Camera box */
+.camera-box {
+  position: relative;
+  background: #0a0e1a;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 16/9;
+}
+
+#camera-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+
+.camera-idle {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.camera-idle p {
+  font-size: 14px;
+  color: #334155;
+  font-weight: 500;
+}
+
+.camera-idle span {
+  font-size: 12px;
+  color: #1e293b;
+}
+
+.live-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(10,10,20,0.85);
+  border: 1px solid rgba(239,68,68,0.4);
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ef4444;
+  font-family: monospace;
+  letter-spacing: 0.06em;
+}
+
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: pulse-live 1s infinite;
+}
+
+@keyframes pulse-live {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.camera-result-overlay {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 16px;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: monospace;
+  letter-spacing: 0.05em;
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+}
+
+.overlay-fake {
+  background: rgba(239,68,68,0.2);
+  border: 1px solid rgba(239,68,68,0.6);
+  color: #ef4444;
+}
+
+.overlay-real {
+  background: rgba(34,197,94,0.2);
+  border: 1px solid rgba(34,197,94,0.6);
+  color: #22c55e;
+}
+
+/* Controls */
+.live-controls {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.control-section { display: flex; flex-direction: column; gap: 8px; }
+
+.control-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.dark-select {
+  width: 100%;
+  height: 32px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-family: inherit;
+  padding: 0 10px;
+  outline: none;
+  cursor: pointer;
+}
+
+.dark-select:focus { border-color: var(--indigo); }
+
+.interval-pills {
+  display: flex;
+  gap: 6px;
+}
+
+.interval-pill {
+  flex: 1;
+  height: 28px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: monospace;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.interval-pill:hover { border-color: var(--indigo); color: var(--indigo); }
+.interval-pill.active { border-color: var(--indigo); color: var(--indigo); background: rgba(99,102,241,0.1); }
+
+.btn-start-camera {
+  width: 100%;
+  height: 38px;
+  background: var(--indigo);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.15s;
+}
+
+.btn-start-camera:hover { background: #4f46e5; }
+
+.btn-stop-camera {
+  width: 100%;
+  height: 38px;
+  background: transparent;
+  border: 1px solid #ef4444;
+  border-radius: 8px;
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-stop-camera:hover { background: rgba(239,68,68,0.08); }
+
+/* Stats */
+.live-stats {
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-key { font-size: 12px; color: var(--text-muted); }
+.stat-val { font-size: 12px; color: var(--text-secondary); font-family: monospace; }
+
+/* History */
+.live-history {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.live-history h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 14px;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.history-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 20px 0;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--card);
+  border-radius: 6px;
+  font-size: 12px;
+  animation: fadein 0.2s ease;
+}
+
+@keyframes fadein {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.history-time { color: var(--text-muted); font-family: monospace; }
+.history-verdict { font-weight: 600; }
+.history-fake { color: #ef4444; }
+.history-real { color: #22c55e; }
+.history-conf { color: var(--text-muted); font-family: monospace; }
+
+@media (max-width: 768px) {
+  .live-layout { grid-template-columns: 1fr; }
+}
+</style>
+
+<script>
+(function() {
+  let stream = null;
+  let analysisInterval = null;
+  let frameCount = 0;
+  let fakeCount = 0;
+  let realCount = 0;
+  let intervalMs = 2000;
+  let isRunning = false;
+
+  const video = document.getElementById('camera-feed');
+  const canvas = document.getElementById('capture-canvas');
+  const startBtn = document.getElementById('start-btn');
+  const stopBtn = document.getElementById('stop-btn');
+  const cameraSelect = document.getElementById('camera-select');
+  const modelSelect = document.getElementById('model-select');
+  const liveBadge = document.getElementById('live-badge');
+  const cameraIdle = document.getElementById('camera-idle');
+  const overlay = document.getElementById('camera-overlay');
+  const overlayText = document.getElementById('overlay-text');
+  const historyList = document.getElementById('history-list');
+  const threshold = document.getElementById('threshold');
+  const thresholdVal = document.getElementById('threshold-val');
+
+  // Load cameras
+  async function loadCameras() {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const cameras = devices.filter(d => d.kind === 'videoinput');
+      cameraSelect.innerHTML = cameras.map((c,i) => 
+        `<option value="${c.deviceId}">
+          ${c.label || 'Camera ' + (i+1)}
+        </option>`
+      ).join('');
+    } catch(e) {
+      cameraSelect.innerHTML = '<option>Default camera</option>';
+    }
+  }
+
+  // Start camera
+  async function startCamera() {
+    try {
+      const constraints = {
+        video: {
+          deviceId: cameraSelect.value 
+            ? { exact: cameraSelect.value } : undefined,
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      };
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      video.srcObject = stream;
+      video.style.display = 'block';
+      cameraIdle.style.display = 'none';
+      liveBadge.style.display = 'flex';
+      startBtn.style.display = 'none';
+      stopBtn.style.display = 'block';
+      
+      document.getElementById('stat-status').textContent = 'Active';
+      document.getElementById('stat-status').style.color = '#22c55e';
+      
+      isRunning = true;
+      startAnalysis();
+    } catch(e) {
+      alert('Could not access camera: ' + e.message);
+    }
+  }
+
+  // Stop camera
+  function stopCamera() {
+    isRunning = false;
+    if (analysisInterval) clearInterval(analysisInterval);
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    video.style.display = 'none';
+    cameraIdle.style.display = 'flex';
+    liveBadge.style.display = 'none';
+    overlay.style.display = 'none';
+    startBtn.style.display = 'flex';
+    stopBtn.style.display = 'none';
+    document.getElementById('stat-status').textContent = 'Idle';
+    document.getElementById('stat-status').style.color = '';
+  }
+
+  // Capture and analyze frame
+  async function analyzeCurrentFrame() {
+    if (!isRunning || video.readyState < 2) return;
+    
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const frameData = canvas.toDataURL('image/jpeg', 0.7);
+    
+    try {
+      const resp = await fetch('/api/analyze-frame/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          frame: frameData,
+          sequence_length: parseInt(modelSelect.value)
+        })
+      });
+      
+      if (!resp.ok) return;
+      const data = await resp.json();
+      
+      frameCount++;
+      const isFake = data.verdict === 'FAKE';
+      if (isFake) fakeCount++; else realCount++;
+      
+      // Update overlay
+      overlay.style.display = 'block';
+      overlay.className = 'camera-result-overlay ' + 
+        (isFake ? 'overlay-fake' : 'overlay-real');
+      overlayText.textContent = isFake 
+        ? `⚠ FAKE · ${data.confidence}%` 
+        : `✓ REAL · ${data.confidence}%`;
+      
+      // Update stats
+      document.getElementById('stat-frames').textContent = frameCount;
+      document.getElementById('stat-verdict').textContent = data.verdict;
+      document.getElementById('stat-verdict').style.color = 
+        isFake ? '#ef4444' : '#22c55e';
+      document.getElementById('stat-confidence').textContent = 
+        data.confidence + '%';
+      document.getElementById('stat-fake').textContent = fakeCount;
+      document.getElementById('stat-real').textContent = realCount;
+      
+      // Add to history
+      addHistory(data);
+      
+      // Alert if threshold exceeded
+      if (isFake && data.confidence >= parseInt(threshold.value)) {
+        document.title = '⚠ FAKE DETECTED - DeepGuard';
+        setTimeout(() => document.title = 
+          'Live Camera - DeepGuard', 3000);
+      }
+      
+    } catch(e) {
+      console.error('Analysis error:', e);
+    }
+  }
+
+  function startAnalysis() {
+    if (analysisInterval) clearInterval(analysisInterval);
+    analysisInterval = setInterval(analyzeCurrentFrame, intervalMs);
+    // Run immediately
+    setTimeout(analyzeCurrentFrame, 500);
+  }
+
+  function addHistory(data) {
+    const empty = historyList.querySelector('.history-empty');
+    if (empty) empty.remove();
+    
+    const now = new Date().toLocaleTimeString();
+    const isFake = data.verdict === 'FAKE';
+    const item = document.createElement('div');
+    item.className = 'history-item';
+    item.innerHTML = `
+      <span class="history-time">${now}</span>
+      <span class="history-verdict ${
+        isFake ? 'history-fake' : 'history-real'}">
+        ${isFake ? '⚠ FAKE' : '✓ REAL'}
+      </span>
+      <span class="history-conf">${data.confidence}%</span>
+    `;
+    historyList.insertBefore(item, historyList.firstChild);
+    
+    // Keep only last 20
+    while (historyList.children.length > 20) {
+      historyList.removeChild(historyList.lastChild);
+    }
+  }
+
+  // Event listeners
+  startBtn.addEventListener('click', startCamera);
+  stopBtn.addEventListener('click', stopCamera);
+  
+  threshold.addEventListener('input', () => {
+    thresholdVal.textContent = threshold.value + '%';
+  });
+
+  document.querySelectorAll('.interval-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.interval-pill')
+        .forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      intervalMs = parseInt(pill.dataset.val);
+      if (isRunning) startAnalysis();
+    });
+  });
+
+  // Init
+  loadCameras();
+})();
+</script>
+
+{% endblock %}

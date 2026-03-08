@@ -1,0 +1,809 @@
+{% extends 'base_new.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-grid">
+            <!-- Left Column -->
+            <div class="hero-left fade-up" style="animation-delay: 0s;">
+                <div class="badge-live">
+                    <div class="live-dot"></div>
+                    LIVE • ResNeXt50 + LSTM Model
+                </div>
+                
+                <h1 class="hero-title">
+                    <span class="line-1">Detect Deepfakes</span>
+                    <span class="line-2">Before They</span>
+                    <span class="line-3">Spread.</span>
+                </h1>
+                
+                <p class="hero-subtext">
+                    Frame-level AI analysis identifies manipulated videos with up to 93.6% accuracy using ResNeXt50 feature extraction and LSTM sequence modeling.
+                </p>
+                
+                <div class="hero-buttons">
+                    <a href="{% url 'ml_app:home' %}" class="btn btn-primary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17,8 12,3 7,8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        Upload Video
+                    </a>
+                    <a href="{% url 'ml_app:screen_analyze' %}" class="btn btn-secondary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                            <line x1="8" y1="21" x2="16" y2="21"/>
+                            <line x1="12" y1="17" x2="12" y2="21"/>
+                        </svg>
+                        Analyze Screen
+                    </a>
+                </div>
+                
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">93.6%</div>
+                        <div class="stat-label">Peak Acc</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">6,000+</div>
+                        <div class="stat-label">Training Videos</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">9</div>
+                        <div class="stat-label">Models</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">Private</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column -->
+            <div class="hero-right fade-up" style="animation-delay: 0.2s;">
+                <div class="detection-card">
+                    <!-- Card Header -->
+                    <div class="card-header">
+                        <div class="window-controls">
+                            <div class="dot red"></div>
+                            <div class="dot yellow"></div>
+                            <div class="dot green"></div>
+                        </div>
+                        <div class="window-title">deepguard.local — analysis</div>
+                        <div class="status-indicator analyzing">
+                            <div class="status-dot"></div>
+                            ANALYZING
+                        </div>
+                    </div>
+                    
+                    <!-- Video Preview Area -->
+                    <div class="video-preview">
+                        <div class="video-thumbnail">
+                            <div class="scan-line"></div>
+                            <div class="corner-bracket top-left"></div>
+                            <div class="corner-bracket top-right"></div>
+                            <div class="corner-bracket bottom-left"></div>
+                            <div class="corner-bracket bottom-right"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Section -->
+                    <div class="progress-section">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 67%;"></div>
+                        </div>
+                        <div class="progress-text">Analyzing frames... 67%</div>
+                    </div>
+                    
+                    <!-- Stats Section -->
+                    <div class="stats-section">
+                        <div class="stat-row">
+                            <span class="stat-label">Frames Analyzed</span>
+                            <div class="stat-bar">
+                                <div class="stat-bar-fill" style="width: 67%;"></div>
+                            </div>
+                            <span class="stat-value">67 / 100</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Confidence Score</span>
+                            <div class="stat-bar">
+                                <div class="stat-bar-fill" style="width: 94.2%;"></div>
+                            </div>
+                            <span class="stat-value">94.2%</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Detection Model</span>
+                            <span class="stat-value">20 frames — 87.8% acc</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Result Badge -->
+                    <div class="result-badge fake-detected">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="15" y1="9" x2="9" y2="15"/>
+                            <line x1="9" y1="9" x2="15" y2="15"/>
+                        </svg>
+                        ⚠ FAKE DETECTED
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature Cards -->
+    <section class="features">
+        <div class="features-grid">
+            <div class="feature-card fade-up" style="animation-delay: 0.3s;">
+                <div class="feature-bar indigo"></div>
+                <div class="feature-icon">📤</div>
+                <h3 class="feature-title">Upload & Analyze</h3>
+                <p class="feature-description">
+                    Upload any MP4, AVI, or MOV file. AI extracts frames, runs them through ResNeXt50 + LSTM, returns verdict with confidence score.
+                </p>
+            </div>
+            
+            <div class="feature-card fade-up" style="animation-delay: 0.4s;">
+                <div class="feature-bar cyan"></div>
+                <div class="feature-icon">🖥</div>
+                <h3 class="feature-title">Screen Capture</h3>
+                <p class="feature-description">
+                    Record your screen in real-time. Catch deepfakes in live video calls, streams, and any content playing in your browser.
+                </p>
+            </div>
+            
+            <div class="feature-card fade-up" style="animation-delay: 0.5s;">
+                <div class="feature-bar green"></div>
+                <div class="feature-icon">📷</div>
+                <h3 class="feature-title">Live Camera</h3>
+                <p class="feature-description">
+                    Continuous webcam monitoring with frame-by-frame analysis every 2-10 seconds. See FAKE/REAL verdict overlaid on your live feed.
+                </p>
+            </div>
+            
+            <div class="feature-card fade-up" style="animation-delay: 0.6s;">
+                <div class="feature-bar amber"></div>
+                <div class="feature-icon">🔌</div>
+                <h3 class="feature-title">Chrome Extension</h3>
+                <p class="feature-description">
+                    Browser-level protection on any website. Floating Analyze button appears on every video across YouTube, Twitter, and more.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works">
+        <div class="section-header fade-up" style="animation-delay: 0.7s;">
+            <h2 class="section-title">How DeepGuard Works</h2>
+            <p class="section-subtitle">A two-stage deep learning pipeline</p>
+        </div>
+        
+        <div class="workflow">
+            <div class="workflow-step fade-up" style="animation-delay: 0.8s;">
+                <div class="step-number">01</div>
+                <div class="step-icon">📥</div>
+                <h4 class="step-title">INPUT</h4>
+                <p class="step-description">
+                    Video file or live stream<br>
+                    uploaded to the system
+                </p>
+                <div class="step-bar indigo"></div>
+            </div>
+            
+            <div class="workflow-arrow fade-up" style="animation-delay: 0.9s;">→</div>
+            
+            <div class="workflow-step fade-up" style="animation-delay: 1.0s;">
+                <div class="step-number">02</div>
+                <div class="step-icon">🎬</div>
+                <h4 class="step-title">EXTRACT</h4>
+                <p class="step-description">
+                    Evenly spaced frames<br>
+                    extracted from video
+                </p>
+                <div class="step-bar cyan"></div>
+            </div>
+            
+            <div class="workflow-arrow fade-up" style="animation-delay: 1.1s;">→</div>
+            
+            <div class="workflow-step fade-up" style="animation-delay: 1.2s;">
+                <div class="step-number">03</div>
+                <div class="step-icon">🧠</div>
+                <h4 class="step-title">ResNeXt50</h4>
+                <p class="step-description">
+                    Feature extraction from<br>
+                    each frame using CNN
+                </p>
+                <div class="step-bar green"></div>
+            </div>
+            
+            <div class="workflow-arrow fade-up" style="animation-delay: 1.3s;">→</div>
+            
+            <div class="workflow-step fade-up" style="animation-delay: 1.4s;">
+                <div class="step-number">04</div>
+                <div class="step-icon">🔄</div>
+                <h4 class="step-title">LSTM</h4>
+                <p class="step-description">
+                    Temporal sequence analysis<br>
+                    across all frames
+                </p>
+                <div class="step-bar amber"></div>
+            </div>
+            
+            <div class="workflow-arrow fade-up" style="animation-delay: 1.5s;">→</div>
+            
+            <div class="workflow-step fade-up" style="animation-delay: 1.6s;">
+                <div class="step-number">05</div>
+                <div class="step-icon">⚖️</div>
+                <h4 class="step-title">VERDICT</h4>
+                <p class="step-description">
+                    Final FAKE/REAL prediction<br>
+                    with confidence score
+                </p>
+                <div class="step-bar red"></div>
+            </div>
+        </div>
+        
+        <div class="preprocessing-details fade-up" style="animation-delay: 1.7s;">
+            <div class="detail-item">
+                <span class="detail-label">FRAME SIZE</span>
+                <span class="detail-value">224×224 RGB</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">NORMALIZATION</span>
+                <span class="detail-value">ImageNet Mean/Std</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">SEQUENCE LENGTH</span>
+                <span class="detail-value">10-100 frames</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">INFERENCE TIME</span>
+                <span class="detail-value">~2-8 seconds</span>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+/* Hero Section */
+.hero {
+    padding: 80px 0 120px;
+}
+
+.hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+}
+
+.hero-left {
+    max-width: 600px;
+}
+
+.hero-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 68px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin: 24px 0 32px;
+}
+
+.line-1, .line-2 {
+    color: var(--text);
+}
+
+.line-3 {
+    background: linear-gradient(135deg, var(--indigo), var(--cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-subtext {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    font-size: 17px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 40px;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 40px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 32px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: var(--indigo);
+    color: white;
+    border: none;
+}
+
+.btn-primary:hover {
+    background: var(--indigo2);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(91, 110, 245, 0.3);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+    background: var(--surface);
+    border-color: var(--indigo);
+    transform: translateY(-2px);
+}
+
+.hero-stats {
+    display: flex;
+    gap: 40px;
+    padding-top: 40px;
+    border-top: 1px solid var(--border);
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Detection Card */
+.detection-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 60px rgba(91, 110, 245, 0.1);
+    max-width: 500px;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+}
+
+.window-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.dot.red { background: #FF5F57; }
+.dot.yellow { background: #FFBD2E; }
+.dot.green { background: #28CA42; }
+
+.window-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    flex: 1;
+    text-align: center;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.video-preview {
+    position: relative;
+    height: 280px;
+    background: linear-gradient(135deg, var(--bg2), var(--surface));
+}
+
+.video-thumbnail {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.scan-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--indigo), transparent);
+    animation: scan 2s linear infinite;
+}
+
+@keyframes scan {
+    0% { top: 0%; opacity: 1; }
+    90% { top: 100%; opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+}
+
+.corner-bracket {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--indigo);
+}
+
+.top-left { top: 20px; left: 20px; border-right: none; border-bottom: none; }
+.top-right { top: 20px; right: 20px; border-left: none; border-bottom: none; }
+.bottom-left { bottom: 20px; left: 20px; border-right: none; border-top: none; }
+.bottom-right { bottom: 20px; right: 20px; border-left: none; border-top: none; }
+
+.progress-section {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.progress-bar {
+    height: 4px;
+    background: var(--surface);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--indigo), var(--cyan));
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.stats-section {
+    padding: 20px;
+}
+
+.stat-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.stat-row .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    width: 120px;
+}
+
+.stat-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--surface);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.stat-bar-fill {
+    height: 100%;
+    background: var(--indigo);
+    border-radius: 3px;
+}
+
+.stat-row .stat-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    width: 60px;
+    text-align: right;
+}
+
+.result-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 20px;
+    margin: 20px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.fake-detected {
+    background: rgba(244, 63, 94, 0.1);
+    border: 1px solid var(--red);
+    color: var(--red);
+    animation: fakePulse 2s infinite;
+}
+
+@keyframes fakePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(244, 63, 94, 0); }
+}
+
+/* Feature Cards */
+.features {
+    padding: 80px 0;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+}
+
+.feature-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+}
+
+.feature-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+}
+
+.feature-bar.indigo { background: var(--indigo); }
+.feature-bar.cyan { background: var(--cyan); }
+.feature-bar.green { background: var(--green); }
+.feature-bar.amber { background: var(--amber); }
+
+.feature-icon {
+    font-size: 32px;
+    margin-bottom: 20px;
+}
+
+.feature-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--text);
+    margin-bottom: 12px;
+}
+
+.feature-description {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+/* How It Works */
+.how-it-works {
+    padding: 80px 0 120px;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 80px;
+}
+
+.section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 48px;
+    color: var(--text);
+    margin-bottom: 16px;
+}
+
+.section-subtitle {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 18px;
+    color: var(--muted);
+}
+
+.workflow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 60px;
+    flex-wrap: wrap;
+}
+
+.workflow-step {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 24px;
+    text-align: center;
+    position: relative;
+    width: 180px;
+    min-height: 240px;
+}
+
+.step-number {
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--indigo);
+    margin-bottom: 16px;
+}
+
+.step-icon {
+    font-size: 32px;
+    margin-bottom: 16px;
+}
+
+.step-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text);
+    margin-bottom: 12px;
+}
+
+.step-description {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.4;
+}
+
+.step-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+}
+
+.step-bar.indigo { background: var(--indigo); }
+.step-bar.cyan { background: var(--cyan); }
+.step-bar.green { background: var(--green); }
+.step-bar.amber { background: var(--amber); }
+.step-bar.red { background: var(--red); }
+
+.workflow-arrow {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    color: var(--muted);
+}
+
+.preprocessing-details {
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+    flex-wrap: wrap;
+}
+
+.detail-item {
+    text-align: center;
+}
+
+.detail-label {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+}
+
+.detail-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 60px;
+    }
+    
+    .hero-right {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    
+    .hero-title {
+        font-size: 56px;
+    }
+    
+    .workflow {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .workflow-arrow {
+        transform: rotate(90deg);
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-buttons {
+        flex-direction: column;
+    }
+    
+    .hero-stats {
+        flex-wrap: wrap;
+        gap: 24px;
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .preprocessing-details {
+        gap: 24px;
+    }
+    
+    .hero-title {
+        font-size: 48px;
+    }
+    
+    .section-title {
+        font-size: 36px;
+    }
+}
+</style>
+{% endblock %}

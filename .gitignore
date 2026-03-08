@@ -1,0 +1,319 @@
+# Deepfake Detection Project - .gitignore
+
+# ============================================================================
+# Python
+# ============================================================================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# pdm
+.pdm.toml
+
+# PEP 582
+__pypackages__/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# ============================================================================
+# Django
+# ============================================================================
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Django static files
+/static/
+/staticfiles/
+/media/
+
+# Django migrations (uncomment if you want to ignore migrations)
+# */migrations/*.py
+# !*/migrations/__init__.py
+
+# Django secret key
+secret_key.txt
+
+# ============================================================================
+# Machine Learning / Deep Learning
+# ============================================================================
+# Model weights and checkpoints
+*.pt
+*.pth
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+*.onnx
+*.pb
+
+# Trained models directory
+Django\ Application/models/*.pt
+Django\ Application/models/*.pth
+models/
+checkpoints/
+saved_models/
+weights/
+
+# TensorBoard logs
+runs/
+logs/
+tensorboard/
+
+# PyTorch
+*.caffemodel
+
+# Datasets
+data/
+dataset/
+datasets/
+*.csv
+*.tsv
+
+# Large video files
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.flv
+*.wmv
+*.webm
+
+# Processed frames
+frames/
+extracted_frames/
+temp_frames/
+
+# ============================================================================
+# Docker
+# ============================================================================
+*.log
+docker-compose.override.yml
+
+# ============================================================================
+# IDEs and Editors
+# ============================================================================
+# VSCode
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Cursor
+.cursor/
+.cursor_settings
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+.*.swp
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ============================================================================
+# Operating System Files
+# ============================================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+.directory
+.Trash-*
+
+# ============================================================================
+# Project Specific
+# ============================================================================
+# Uploaded videos for testing
+uploads/
+uploaded_videos/
+test_videos/
+sample_videos/
+
+# Results and outputs
+results/
+output/
+predictions/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Cache directories
+.cache/
+__cache__/
+
+# Node modules (if any frontend)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ============================================================================
+# Documentation build files
+# ============================================================================
+Documentation/_build/
+Documentation/.doctrees/
+
+# ============================================================================
+# Backup files
+# ============================================================================
+*.bak
+*.backup
+*.old
+*.orig
+
+# ============================================================================
+# Credentials and Secrets
+# ============================================================================
+*.key
+*.pem
+*.cert
+secrets.json
+credentials.json
+config/secrets.py
+
+# ============================================================================
+# Miscellaneous
+# ============================================================================
+# Compressed files (usually not needed in repo)
+*.zip
+*.tar
+*.gz
+*.rar
+*.7z
+
+# SQL dumps
+*.sql
+*.sqlite
+
+# Large binary files
+*.bin
+*.dat
