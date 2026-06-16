@@ -1,7 +1,6 @@
 # 🛡️ DeepGuard - AI Deepfake Detection System
 
 <div align="center">
-
 ![DeepGuard Banner](https://img.shields.io/badge/DeepGuard-AI%20Defense-blueviolet?style=for-the-badge)
 
 **Real-time AI-powered deepfake detection for browser environments**
